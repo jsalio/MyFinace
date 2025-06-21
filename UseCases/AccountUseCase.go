@@ -5,6 +5,7 @@ import (
 	models "Financial/Models"
 	"Financial/types"
 	"errors"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -32,6 +33,10 @@ func (uc *AccountUseCase) CreateAccount(nick string, email string, password stri
 		return nil, errors.New("password cannot be empty")
 	}
 
+	if !isValidEmail(email) {
+		return nil, errors.New("invalid email format")
+	}
+
 	// Verificar si el email ya existe
 	if _, err := uc.repository.FindByField("Email", email); err == nil {
 		return nil, errors.New("email already exists")
@@ -47,6 +52,13 @@ func (uc *AccountUseCase) CreateAccount(nick string, email string, password stri
 		Password:  password,
 	}
 	return uc.repository.Create(account)
+}
+
+func isValidEmail(email string) bool {
+	// Basic email regex: allows alphanumeric, dots, and common domains
+	const emailRegex = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	re := regexp.MustCompile(emailRegex)
+	return re.MatchString(email)
 }
 
 func (uc *AccountUseCase) DestroyAccount(email string) error {

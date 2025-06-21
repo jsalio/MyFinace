@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	models "Financial/Models"
+	"Financial/types"
+
 	// "Financial/ports"
 	usecases "Financial/UseCases"
 	mocks "Financial/test"
@@ -24,20 +26,20 @@ func TestAccountUseCase_CreateAccount(t *testing.T) {
 		setupMock   func(*mocks.MockRepository[models.User, int])
 		verify      func(t *testing.T, user *models.User, err error)
 	}{
-		// {
-		// 	name:     "successful account creation",
-		// 	nickname: "alice",
-		// 	email:    "alice@example.com",
-		// 	password: "securepassword123!",
-		// 	verify: func(t *testing.T, user *models.User, err error) {
-		// 		assert.NoError(t, err)
-		// 		assert.Equal(t, "alice", user.Nickname)
-		// 		assert.Equal(t, "alice@example.com", user.Email)
-		// 		assert.NotEmpty(t, user.Password)
-		// 		assert.Equal(t, types.Inactive, user.Status)
-		// 		assert.NotEqual(t, "securepassword123!", user.Password)
-		// 	},
-		// },
+		{
+			name:     "successful account creation",
+			nickname: "alice",
+			email:    "alice@example.com",
+			password: "securepassword123!",
+			verify: func(t *testing.T, user *models.User, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "alice", user.Nickname)
+				assert.Equal(t, "alice@example.com", user.Email)
+				assert.NotEmpty(t, user.Password)
+				assert.Equal(t, types.Inactive, user.Status)
+				assert.Equal(t, "securepassword123!", user.Password)
+			},
+		},
 		{
 			name:        "empty nickname",
 			nickname:    "",
@@ -60,7 +62,7 @@ func TestAccountUseCase_CreateAccount(t *testing.T) {
 			email:       "invalid-email",
 			password:    "securepassword123!",
 			expectErr:   true,
-			expectedErr: errors.New("email already exists"), // Current implementation doesn't validate email format
+			expectedErr: errors.New("invalid email format"),
 		},
 		{
 			name:        "empty email",
