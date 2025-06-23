@@ -5,6 +5,7 @@ import (
 	models "Financial/Models"
 	"Financial/types"
 	"errors"
+	"fmt"
 	"regexp"
 	"strings"
 	"time"
@@ -51,6 +52,7 @@ func (uc *AccountUseCase) CreateAccount(nick string, email string, password stri
 		CreatedAt: time.Now(),
 		Password:  password,
 	}
+	fmt.Printf("%v", account)
 	return uc.repository.Create(account)
 }
 

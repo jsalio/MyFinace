@@ -26,7 +26,7 @@ func (s *Server) setupRouter() {
 	{
 		account := api.Group("/account")
 		{
-			account.POST("", func(ctx *gin.Context) {})
+			account.POST("", s.CreateUserAccount)
 			account.PUT("", func(ctx *gin.Context) {})
 			account.DELETE("", func(ctx *gin.Context) {})
 		}
@@ -39,9 +39,9 @@ func (s *Server) Start(address string) error {
 
 func (s *Server) CreateUserAccount(c *gin.Context) {
 	var request struct {
-		nick     string `json:"nick" binding:"required"`
-		email    string `json:"email" binding:"required"`
-		password string `json:"password" binding:"required"`
+		Nick     string `json:"nick" binding:"required"`
+		Email    string `json:"email" binding:"required"`
+		Password string `json:"password" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -49,7 +49,7 @@ func (s *Server) CreateUserAccount(c *gin.Context) {
 		return
 	}
 
-	account, err := s.UserUsercase.CreateAccount(request.nick, request.email, request.password)
+	account, err := s.UserUsercase.CreateAccount(request.Nick, request.Email, request.Password)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return

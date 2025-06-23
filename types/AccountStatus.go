@@ -3,7 +3,8 @@ package types
 type AccountStatus string
 
 const (
-	Active   AccountStatus = "Active"
-	Inactive AccountStatus = "Inactive"
-	Pending  AccountStatus = "Pending"
+	Active   AccountStatus = "active"
+	Inactive AccountStatus = "inactive"
+	Pending  AccountStatus = "pending"
+	Suspend  AccountStatus = "suspended"
 )

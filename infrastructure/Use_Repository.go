@@ -5,6 +5,7 @@ import (
 	models "Financial/Models"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/supabase-community/supabase-go"
 )
@@ -19,12 +20,32 @@ func NewSupaBaseUserRepository(client *supabase.Client) ports.Repository[models.
 	return &SupaBaseUserRepository{client: client}
 }
 
-func (repo *SupaBaseUserRepository) Create(model *models.User) (*models.User, error) {
-	var result models.User
+// CreateUser is a helper struct that matches the database schema
+type CreateUser struct {
+	Nickname  string    `json:"nick_name"`
+	FirstName string    `json:"first_name"`
+	Lastname  string    `json:"last_name"`
+	Email     string    `json:"email"`
+	Status    string    `json:"status"`
+	CreatedAt time.Time `json:"created_at"`
+	Password  string    `json:"password"`
+}
 
-	insertData := map[string]interface{}{}
+func (repo *SupaBaseUserRepository) Create(model *models.User) (*models.User, error) {
+	// Create a new user without the ID field
+	newUser := CreateUser{
+		Nickname:  model.Nickname,
+		FirstName: model.FirstName,
+		Lastname:  model.Lastname,
+		Email:     model.Email,
+		Status:    string(model.Status),
+		CreatedAt: model.CreatedAt,
+		Password:  model.Password,
+	}
+
+	var result models.User
 	_, err := repo.client.From(table_string).
-		Insert(insertData, false, "", "representation", "").
+		Insert(newUser, false, "", "representation", "").
 		Single().
 		ExecuteTo(&result)
 
@@ -58,8 +79,8 @@ func (repo *SupaBaseUserRepository) FindByField(field string, value any) (*model
 	}
 
 	_, err := repo.client.From(table_string).Select("*", "", false).
-		Filter(field, "Equal to", string(filterValue)).
-		ExecuteTo(target)
+		Filter(field, "eq", string(filterValue)).
+		ExecuteTo(&target)
 
 	if err != nil {
 		return nil, err

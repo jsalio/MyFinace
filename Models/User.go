@@ -27,7 +27,7 @@ type User struct {
 	Status types.AccountStatus `json:"status"`
 
 	// CreatedAt is the timestamp when the user account was created
-	CreatedAt time.Time `json:"Created_At"`
+	CreatedAt time.Time `json:"created_at"`
 
 	// Password is the hashed password for the user (never stored in plain text)
 	Password string `json:"password"`
