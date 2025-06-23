@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"Financial/Domains/ports"
 	models "Financial/Models"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -61,8 +62,11 @@ func (repo *SupaBaseUserRepository) Delete(id int) error {
 	return err
 }
 
+// ErrNotFound is returned when a record is not found
+var ErrNotFound = errors.New("record not found")
+
 func (repo *SupaBaseUserRepository) FindByField(field string, value any) (*models.User, error) {
-	var target models.User
+	var results []models.User
 
 	var filterValue string
 	switch v := value.(type) {
@@ -78,14 +82,23 @@ func (repo *SupaBaseUserRepository) FindByField(field string, value any) (*model
 		return nil, fmt.Errorf("unsupported type for field filtering: %T", value)
 	}
 
-	_, err := repo.client.From(table_string).Select("*", "", false).
-		Filter(field, "eq", string(filterValue)).
-		ExecuteTo(&target)
+	// Execute the query and get the results into a slice
+	_, err := repo.client.From(table_string).
+		Select("*", "exact", false).
+		Filter(field, "eq", filterValue).
+		ExecuteTo(&results)
 
 	if err != nil {
 		return nil, err
 	}
-	return &target, nil
+
+	// If no results found, return not found error
+	if len(results) == 0 {
+		return nil, ErrNotFound
+	}
+
+	// Return the first result
+	return &results[0], nil
 }
 
 func (repo *SupaBaseUserRepository) GetAll() ([]models.User, error) {

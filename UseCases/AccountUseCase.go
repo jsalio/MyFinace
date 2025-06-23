@@ -3,6 +3,7 @@ package usecases
 import (
 	"Financial/Domains/ports"
 	models "Financial/Models"
+	"Financial/infrastructure"
 	"Financial/types"
 	"errors"
 	"fmt"
@@ -10,6 +11,8 @@ import (
 	"strings"
 	"time"
 )
+
+var ErrNotFound = infrastructure.ErrNotFound
 
 type AccountUseCase struct {
 	repository ports.Repository[models.User, int]
@@ -38,9 +41,19 @@ func (uc *AccountUseCase) CreateAccount(nick string, email string, password stri
 		return nil, errors.New("invalid email format")
 	}
 
-	// Verificar si el email ya existe
-	if _, err := uc.repository.FindByField("Email", email); err == nil {
+	// Check if email already exists
+	_, err := uc.repository.FindByField("email", email)
+	if err == nil {
 		return nil, errors.New("email already exists")
+	} else if err != ErrNotFound {
+		return nil, fmt.Errorf("error checking email existence: %w", err)
+	}
+
+	_, err_nick := uc.repository.FindByField("nick_name", nick)
+	if err_nick == nil {
+		return nil, errors.New("nickname already exists")
+	} else if err != ErrNotFound {
+		return nil, fmt.Errorf("error checking nick existence: %w", err)
 	}
 
 	account := &models.User{
@@ -52,7 +65,6 @@ func (uc *AccountUseCase) CreateAccount(nick string, email string, password stri
 		CreatedAt: time.Now(),
 		Password:  password,
 	}
-	fmt.Printf("%v", account)
 	return uc.repository.Create(account)
 }
 

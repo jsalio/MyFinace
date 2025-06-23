@@ -2,6 +2,8 @@ package models
 
 import (
 	"Financial/types"
+	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -27,10 +29,46 @@ type User struct {
 	Status types.AccountStatus `json:"status"`
 
 	// CreatedAt is the timestamp when the user account was created
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+
+	// created_at_str is used internally for JSON unmarshaling
+	createdAtStr string `json:"-"`
 
 	// Password is the hashed password for the user (never stored in plain text)
 	Password string `json:"password"`
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface to handle custom timestamp parsing
+func (u *User) UnmarshalJSON(data []byte) error {
+	// Define an auxiliary type to avoid recursion
+	type Alias User
+	aux := &struct {
+		*Alias
+		CreatedAtStr string `json:"created_at"`
+	}{
+		Alias: (*Alias)(u),
+	}
+
+	// Unmarshal the data into the auxiliary struct
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// Parse the timestamp string into a time.Time value
+	if aux.CreatedAtStr != "" {
+		// Try parsing with the format from the error message first
+		parsedTime, err := time.Parse("2006-01-02T15:04:05.999", aux.CreatedAtStr)
+		if err != nil {
+			// If that fails, try the RFC3339 format
+			parsedTime, err = time.Parse(time.RFC3339, aux.CreatedAtStr)
+			if err != nil {
+				return fmt.Errorf("error parsing created_at timestamp: %v", err)
+			}
+		}
+		u.CreatedAt = parsedTime
+	}
+
+	return nil
 }
 
 // UpdateAccountRequest represents the data that can be updated for a user account.
