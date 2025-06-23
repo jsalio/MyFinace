@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"Financial/Domains/ports"
 	models "Financial/Models"
+	"fmt"
 	"strconv"
 
 	"github.com/supabase-community/supabase-go"
@@ -42,8 +43,22 @@ func (repo *SupaBaseUserRepository) Delete(id int) error {
 func (repo *SupaBaseUserRepository) FindByField(field string, value any) (*models.User, error) {
 	var target models.User
 
+	var filterValue string
+	switch v := value.(type) {
+	case string:
+		filterValue = v
+	case int, int32, int64, uint, uint32, uint64:
+		filterValue = fmt.Sprintf("%d", v)
+	case float32, float64:
+		filterValue = fmt.Sprintf("%f", v)
+	case bool:
+		filterValue = strconv.FormatBool(v)
+	default:
+		return nil, fmt.Errorf("unsupported type for field filtering: %T", value)
+	}
+
 	_, err := repo.client.From(table_string).Select("*", "", false).
-		Filter(field, "Equal to", string(value)).
+		Filter(field, "Equal to", string(filterValue)).
 		ExecuteTo(target)
 
 	if err != nil {
