@@ -54,25 +54,38 @@ func (ac *AccountController) RegisterRoutes(router *gin.RouterGroup) {
 // @Tags usuarios
 // @Accept json
 // @Produce json
-// @param request body dtos.CreateAccountRequest true ""
-// @Success 200 "Usuario creado exitosamente"
-// @Failure 400 {object} map[string]string "Error en la solicitud"
-// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @param request body dtos.CreateAccountRequest true "Datos del usuario nuevo"
+// @Success 200 {object} dtos.CreateAccountResponse "Usuario creado exitosamente"
+// @Failure 400 {object} dtos.ErrorResponse "Error en la solicitud"
+// @Failure 500 {object} dtos.ErrorResponse "Error interno del servidor"
 // @Router /account [post]
 func (ac *AccountController) CreateUserAccount(c *gin.Context) {
 	var request dtos.CreateAccountRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(400, gin.H{"error": "Solicitud inválida"})
+		var errorRes = dtos.ErrorResponse{
+			Error: "Solicitud inválida",
+		}
+		c.JSON(400, errorRes)
 		return
 	}
 
 	account, err := ac.userUseCase.CreateAccount(request.Nick, request.Email, request.Password)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		var errorRes = dtos.ErrorResponse{
+			Error: err.Error(),
+		}
+		c.JSON(500, errorRes)
 		return
 	}
-	c.JSON(200, account)
+
+	var response = dtos.CreateAccountResponse{
+		ID:    account.ID,
+		Nick:  account.Nickname,
+		Email: account.Nickname,
+	}
+
+	c.JSON(200, response)
 }
 
 // UpdateUserAccount actualiza la información de un usuario existente
@@ -82,15 +95,18 @@ func (ac *AccountController) CreateUserAccount(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body dtos.UpdateAccountRequest true "Datos actualizados del usuario"
-// @Success 200 "Usuario actualizado exitosamente"
-// @Failure 400 {object} map[string]string "Error en la solicitud"
-// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Success 200 {object} dtos.UpdateAccountResponse "Usuario actualizado exitosamente"
+// @Failure 400 {object} dtos.ErrorResponse "Error en la solicitud"
+// @Failure 500 {object} dtos.ErrorResponse "Error interno del servidor"
 // @Router /account [put]
 func (ac *AccountController) UpdateUserAccount(c *gin.Context) {
 	var request dtos.UpdateAccountRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(400, gin.H{"error": "Solicitud inválida"})
+		var errorRes = dtos.ErrorResponse{
+			Error: "Solicitud inválida",
+		}
+		c.JSON(400, errorRes)
 		return
 	}
 
@@ -104,10 +120,17 @@ func (ac *AccountController) UpdateUserAccount(c *gin.Context) {
 	})
 
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		var errorRes = dtos.ErrorResponse{
+			Error: err.Error(),
+		}
+		c.JSON(500, errorRes)
 		return
 	}
-	c.JSON(200, account)
+	var response = dtos.UpdateAccountResponse{
+		ID:    account.ID,
+		Email: account.Email,
+	}
+	c.JSON(200, response)
 }
 
 // DeleteUserAccount elimina una cuenta de usuario
@@ -118,20 +141,26 @@ func (ac *AccountController) UpdateUserAccount(c *gin.Context) {
 // @Produce json
 // @Param request body dtos.DeleteAccountRequest true "Email del usuario a eliminar"
 // @Success 200 {object} map[string]string "Mensaje de éxito"
-// @Failure 400 {object} map[string]string "Error en la solicitud"
-// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Failure 400 {object} dtos.ErrorResponse "Error en la solicitud"
+// @Failure 500 {object} dtos.ErrorResponse "Error interno del servidor"
 // @Router /account [delete]
 func (ac *AccountController) DeleteUserAccount(c *gin.Context) {
 	var request dtos.DeleteAccountRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(400, gin.H{"error": "Solicitud inválida"})
+		var errorRes = dtos.ErrorResponse{
+			Error: "Solicitud inválida",
+		}
+		c.JSON(400, errorRes)
 		return
 	}
 
 	err := ac.userUseCase.DestroyAccount(request.Email)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		var errorRes = dtos.ErrorResponse{
+			Error: err.Error(),
+		}
+		c.JSON(500, errorRes)
 		return
 	}
 

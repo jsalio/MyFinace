@@ -41,24 +41,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Usuario actualizado exitosamente"
+                        "description": "Usuario actualizado exitosamente",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.UpdateAccountResponse"
+                        }
                     },
                     "400": {
                         "description": "Error en la solicitud",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dtos.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Error interno del servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dtos.ErrorResponse"
                         }
                     }
                 }
@@ -75,26 +72,34 @@ const docTemplate = `{
                     "usuarios"
                 ],
                 "summary": "Crear un nuevo usuario",
+                "parameters": [
+                    {
+                        "description": "Datos del usuario nuevo",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.CreateAccountRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Usuario creado exitosamente"
+                        "description": "Usuario creado exitosamente",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.CreateAccountResponse"
+                        }
                     },
                     "400": {
                         "description": "Error en la solicitud",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dtos.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Error interno del servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dtos.ErrorResponse"
                         }
                     }
                 }
@@ -135,19 +140,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Error en la solicitud",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dtos.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Error interno del servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dtos.ErrorResponse"
                         }
                     }
                 }
@@ -155,6 +154,44 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dtos.CreateAccountRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "nick",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "nick": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.CreateAccountResponse": {
+            "type": "object",
+            "required": [
+                "email",
+                "id",
+                "nick"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nick": {
+                    "type": "string"
+                }
+            }
+        },
         "dtos.DeleteAccountRequest": {
             "type": "object",
             "required": [
@@ -166,6 +203,14 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                }
+            }
+        },
+        "dtos.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
                 }
             }
         },
@@ -194,6 +239,20 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "dtos.UpdateAccountResponse": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
         }
     }
 }`
@@ -208,8 +267,6 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	// LeftDelim:        "{{",
-	// RightDelim:       "}}",
 }
 
 func init() {

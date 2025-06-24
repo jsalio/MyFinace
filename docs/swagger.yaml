@@ -1,4 +1,30 @@
 definitions:
+  dtos.CreateAccountRequest:
+    properties:
+      email:
+        type: string
+      nick:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - nick
+    - password
+    type: object
+  dtos.CreateAccountResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      nick:
+        type: string
+    required:
+    - email
+    - id
+    - nick
+    type: object
   dtos.DeleteAccountRequest:
     properties:
       email:
@@ -7,6 +33,11 @@ definitions:
         type: integer
     required:
     - id
+    type: object
+  dtos.ErrorResponse:
+    properties:
+      error:
+        type: string
     type: object
   dtos.UpdateAccountRequest:
     properties:
@@ -22,6 +53,15 @@ definitions:
         type: string
       status:
         type: string
+    required:
+    - id
+    type: object
+  dtos.UpdateAccountResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
     required:
     - id
     type: object
@@ -52,15 +92,11 @@ paths:
         "400":
           description: Error en la solicitud
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dtos.ErrorResponse'
         "500":
           description: Error interno del servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dtos.ErrorResponse'
       summary: Eliminar usuario
       tags:
       - usuarios
@@ -68,23 +104,28 @@ paths:
       consumes:
       - application/json
       description: Crea un nuevo usuario con la información proporcionada
+      parameters:
+      - description: Datos del usuario nuevo
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreateAccountRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Usuario creado exitosamente
+          schema:
+            $ref: '#/definitions/dtos.CreateAccountResponse'
         "400":
           description: Error en la solicitud
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dtos.ErrorResponse'
         "500":
           description: Error interno del servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dtos.ErrorResponse'
       summary: Crear un nuevo usuario
       tags:
       - usuarios
@@ -104,18 +145,16 @@ paths:
       responses:
         "200":
           description: Usuario actualizado exitosamente
+          schema:
+            $ref: '#/definitions/dtos.UpdateAccountResponse'
         "400":
           description: Error en la solicitud
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dtos.ErrorResponse'
         "500":
           description: Error interno del servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dtos.ErrorResponse'
       summary: Actualizar usuario
       tags:
       - usuarios

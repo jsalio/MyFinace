@@ -9,6 +9,12 @@ type CreateAccountRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type CreateAccountResponse struct {
+	ID    int    `json:"id" binding:"required"`
+	Nick  string `json:"nick" binding:"required"`
+	Email string `json:"email" binding:"required"`
+}
+
 // UpdateAccountRequest representa la estructura de la solicitud para actualizar una cuenta
 // swagger:model
 // @name UpdateAccountRequest
@@ -19,6 +25,11 @@ type UpdateAccountRequest struct {
 	Email     string `json:"email" binding:"omitempty,email"`
 	Status    string `json:"status"`
 	Password  string `json:"password"`
+}
+
+type UpdateAccountResponse struct {
+	ID    int    `json:"id" binding:"required"`
+	Email string `json:"email" binding:"omitempty,email"`
 }
 
 // DeleteAccountRequest representa la estructura de la solicitud para eliminar una cuenta
