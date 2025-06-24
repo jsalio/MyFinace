@@ -4,12 +4,16 @@ import (
 	"Financial/Domains/ports"
 	"Financial/intefaces/controllers"
 
+	_ "Financial/docs" // This is important - points to your generated docs
+
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Server struct {
-	router        *gin.Engine
-	userUseCase   ports.UserUseCase
+	router         *gin.Engine
+	userUseCase    ports.UserUseCase
 	apiControllers []controllers.Controller
 }
 
@@ -32,7 +36,7 @@ func (s *Server) setupControllers() {
 
 func (s *Server) setupRouter() {
 	s.router = gin.Default()
-
+	s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// API v1 routes
 	api := s.router.Group("/api")
 	{

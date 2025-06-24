@@ -1,0 +1,122 @@
+definitions:
+  dtos.DeleteAccountRequest:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+    required:
+    - id
+    type: object
+  dtos.UpdateAccountRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      password:
+        type: string
+      status:
+        type: string
+    required:
+    - id
+    type: object
+info:
+  contact: {}
+paths:
+  /account:
+    delete:
+      consumes:
+      - application/json
+      description: Elimina un usuario existente por su email
+      parameters:
+      - description: Email del usuario a eliminar
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.DeleteAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Mensaje de éxito
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Error en la solicitud
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Eliminar usuario
+      tags:
+      - usuarios
+    post:
+      consumes:
+      - application/json
+      description: Crea un nuevo usuario con la información proporcionada
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuario creado exitosamente
+        "400":
+          description: Error en la solicitud
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Crear un nuevo usuario
+      tags:
+      - usuarios
+    put:
+      consumes:
+      - application/json
+      description: Actualiza la información de un usuario existente
+      parameters:
+      - description: Datos actualizados del usuario
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UpdateAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuario actualizado exitosamente
+        "400":
+          description: Error en la solicitud
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Actualizar usuario
+      tags:
+      - usuarios
+swagger: "2.0"
