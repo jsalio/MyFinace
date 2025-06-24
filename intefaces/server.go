@@ -105,8 +105,8 @@ func (s *Server) DeleteUserAccount(c *gin.Context) {
 		return
 	}
 	var response struct {
-		message string
+		Message string `json:"message"`
 	}
-	response.message = "Account deleted"
+	response.Message = "Account deleted"
 	c.JSON(200, response)
 }
