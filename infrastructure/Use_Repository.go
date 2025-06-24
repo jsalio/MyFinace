@@ -122,11 +122,11 @@ func (repo *SupaBaseUserRepository) GetByID(id int) (*models.User, error) {
 }
 
 func (r *SupaBaseUserRepository) Update(todo *models.User) (*models.User, error) {
-	var result models.User
+	var result []models.User
 	_, err := r.client.From(table_string).Update(todo, "", "").Eq("id", strconv.Itoa(todo.ID)).
 		ExecuteTo(&result)
 	if err != nil {
 		return nil, err
 	}
-	return &result, nil
+	return &result[0], nil
 }

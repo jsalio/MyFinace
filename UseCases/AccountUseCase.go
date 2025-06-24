@@ -80,7 +80,7 @@ func (uc *AccountUseCase) DestroyAccount(email string) error {
 		return errors.New("email cannot be empty")
 	}
 
-	user, err := uc.repository.FindByField("Email", email)
+	user, err := uc.repository.FindByField("email", email)
 	if err != nil {
 		return errors.New("account not found")
 	}
@@ -89,12 +89,14 @@ func (uc *AccountUseCase) DestroyAccount(email string) error {
 }
 
 func (uc *AccountUseCase) UpdateAccount(req models.UpdateAccountRequest) (*models.User, error) {
+	fmt.Printf("%v", req)
 	if strings.TrimSpace(req.Email) == "" {
 		return nil, errors.New("email cannot be empty")
 	}
 
-	user, err := uc.repository.FindByField("Email", req.Email)
+	user, err := uc.repository.FindByField("email", req.Email)
 	if err != nil {
+		fmt.Printf("%v", err)
 		return nil, errors.New("account not found")
 	}
 
@@ -116,6 +118,11 @@ func (uc *AccountUseCase) UpdateAccount(req models.UpdateAccountRequest) (*model
 		user.Status = req.Status
 		updated = true
 	}
+
+	if user.ID != req.ID {
+		return nil, errors.New("user id and Mail not match")
+	}
+
 	// Validar si el nuevo email ya existe (si se proporciona)
 	if req.Email != "" && req.Email != user.Email {
 		if _, err := uc.repository.FindByField("Email", req.Email); err == nil {
