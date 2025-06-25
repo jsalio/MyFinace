@@ -51,11 +51,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	repo := SupaBaseUserRepository.NewSupaBaseUserRepository(client)
-	todoUseCase := UserCases.NewAccountUseCase(repo)
+	accountRepository := SupaBaseUserRepository.NewSupaBaseUserRepository(client)
+	accountUseCase := UserCases.NewAccountUseCase(accountRepository)
 
 	// Crear e iniciar el servidor web
-	server := intefaces.NewServer(todoUseCase)
+	server := intefaces.NewServer(accountUseCase)
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
