@@ -9,6 +9,9 @@ import (
 // Wallet represents a user's digital wallet in the financial application.
 // It contains the basic information and balance of a wallet.
 type Wallet struct {
+	// ID is the unique identifier for the user
+	ID int `json:"id"`
+
 	// Name is the user-defined identifier for the wallet.
 	// It must be unique per user.
 	Name string `json:"name"`
@@ -17,7 +20,7 @@ type Wallet struct {
 	// It uses the WalletType type defined in the types package.
 	Type types.WalletType `json:"type"`
 
-		// Balance is the current monetary amount available in the wallet.
+	// Balance is the current monetary amount available in the wallet.
 	// It's represented as a float64 to support decimal values.
 	Balance float64 `json:"balance"`
 
