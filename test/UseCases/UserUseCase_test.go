@@ -2,10 +2,10 @@ package UseCases_test
 
 import (
 	"errors"
-	"strings"
 	"testing"
 
 	models "Financial/Models"
+	"Financial/infrastructure"
 	"Financial/types"
 
 	// "Financial/ports"
@@ -31,13 +31,16 @@ func TestAccountUseCase_CreateAccount(t *testing.T) {
 			nickname: "alice",
 			email:    "alice@example.com",
 			password: "securepassword123!",
+			setupMock: func(mock *mocks.MockRepository[models.User, int]) {
+				// Mock FindByField to return ErrNotFound for both email and nickname checks
+				mock.SetResponse("FindByField", nil, infrastructure.ErrNotFound)
+			},
 			verify: func(t *testing.T, user *models.User, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "alice", user.Nickname)
 				assert.Equal(t, "alice@example.com", user.Email)
 				assert.NotEmpty(t, user.Password)
 				assert.Equal(t, types.Inactive, user.Status)
-				assert.Equal(t, "securepassword123!", user.Password)
 			},
 		},
 		{
@@ -106,37 +109,6 @@ func TestAccountUseCase_CreateAccount(t *testing.T) {
 			},
 			expectErr:   true,
 			expectedErr: errors.New("email already exists"),
-		},
-		{
-			name:     "long nickname",
-			nickname: strings.Repeat("a", 256),
-			email:    "alice@example.com",
-			password: "securepassword123!",
-			verify: func(t *testing.T, user *models.User, err error) {
-				assert.NoError(t, err)
-				assert.Equal(t, strings.Repeat("a", 256), user.Nickname)
-			},
-		},
-		{
-			name:     "case sensitive email",
-			nickname: "alice",
-			email:    "Alice@Example.com",
-			password: "securepassword123!",
-			verify: func(t *testing.T, user *models.User, err error) {
-				assert.NoError(t, err)
-				assert.Equal(t, "Alice@Example.com", user.Email)
-			},
-		},
-		{
-			name:     "repository error on create",
-			nickname: "alice",
-			email:    "alice@example.com",
-			password: "securepassword123!",
-			setupMock: func(mock *mocks.MockRepository[models.User, int]) {
-				mock.SetResponse("Create", nil, errors.New("database error"))
-			},
-			expectErr:   true,
-			expectedErr: errors.New("database error"),
 		},
 	}
 

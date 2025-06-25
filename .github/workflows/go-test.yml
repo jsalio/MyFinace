@@ -1,0 +1,43 @@
+name: Go Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Configura el entorno con la versión de Go que necesitas
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21' # Cambia a la versión de Go que uses
+
+    # 2. Clona el repositorio
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    # 3. Instala dependencias (opcional, si usas módulos de Go)
+    - name: Install dependencies
+      run: go mod download
+
+    # 4. Ejecuta los tests
+    - name: Run tests
+      run: go test ./... -v
+
+    # 5. (Opcional) Genera un reporte de cobertura
+    - name: Run coverage
+      run: go test ./... -coverprofile=coverage.out
+
+    # # 6. (Opcional) Sube el reporte de cobertura a un servicio como Codecov
+    # - name: Upload coverage to Codecov
+    #   uses: codecov/codecov-action@v4
+    #   with:
+    #     files: ./coverage.out
+    #     token: ${{ secrets.CODECOV_TOKEN }}
