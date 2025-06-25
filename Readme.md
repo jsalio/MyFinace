@@ -42,8 +42,15 @@ Inicia el servidor de desarrollo:
 ```bash
 go run main.go
 ```
-
 La aplicación estará disponible en `http://localhost:8080`
+
+## Generar la documentacion de swagger
+
+En la consola escribe 
+
+```bash
+swag init -g interfaces/server.go
+```
 
 ## Documentación de la API
 

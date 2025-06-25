@@ -3,6 +3,7 @@ package intefaces
 import (
 	"Financial/Domains/ports"
 	"Financial/intefaces/controllers"
+	"Financial/intefaces/middleware"
 
 	_ "Financial/docs" // This is important - points to your generated docs
 
@@ -15,11 +16,13 @@ type Server struct {
 	router         *gin.Engine
 	userUseCase    ports.UserUseCase
 	apiControllers []controllers.Controller
+	authMiddleware *middleware.AuthMiddleware
 }
 
 func NewServer(userUseCase ports.UserUseCase) *Server {
 	server := &Server{
-		userUseCase: userUseCase,
+		userUseCase:    userUseCase,
+		authMiddleware: middleware.NewAuthMiddleware(),
 	}
 	server.setupControllers()
 	server.setupRouter()
@@ -29,7 +32,7 @@ func NewServer(userUseCase ports.UserUseCase) *Server {
 func (s *Server) setupControllers() {
 	// Register all controllers here
 	s.apiControllers = []controllers.Controller{
-		controllers.NewAccountController(s.userUseCase),
+		controllers.NewAccountController(s.userUseCase, s.authMiddleware),
 		// Add more controllers here as needed
 	}
 }
@@ -39,12 +42,14 @@ func (s *Server) setupRouter() {
 	s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// API v1 routes
 	api := s.router.Group("/api")
+	api.Use(s.authMiddleware.AuthMiddleware())
 	{
 		// Register all controllers
 		for _, controller := range s.apiControllers {
 			controller.RegisterRoutes(api)
 		}
 	}
+
 }
 
 func (s *Server) Start(address string) error {

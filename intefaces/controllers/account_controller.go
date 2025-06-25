@@ -4,6 +4,7 @@ import (
 	"Financial/Domains/ports"
 	models "Financial/Models"
 	"Financial/intefaces/controllers/dtos"
+	"Financial/intefaces/middleware"
 	"Financial/types"
 
 	"github.com/gin-gonic/gin"
@@ -29,22 +30,30 @@ import (
 //	@Consume json
 type AccountController struct {
 	*BaseController
-	userUseCase ports.UserUseCase
+	userUseCase    ports.UserUseCase
+	authMiddleware *middleware.AuthMiddleware
 }
 
-func NewAccountController(userUseCase ports.UserUseCase) *AccountController {
+func NewAccountController(userUseCase ports.UserUseCase, authMiddlerware *middleware.AuthMiddleware) *AccountController {
 	return &AccountController{
 		BaseController: NewBaseController("/account"),
 		userUseCase:    userUseCase,
+		authMiddleware: authMiddlerware,
 	}
 }
 
 func (ac *AccountController) RegisterRoutes(router *gin.RouterGroup) {
-	group := router.Group(ac.Path)
+	ac.authMiddleware.Config.AddPublicRoute("POST", "/api/account")
+	public := router.Group(ac.Path)
 	{
-		group.POST("", ac.CreateUserAccount)
-		group.PUT("", ac.UpdateUserAccount)
-		group.DELETE("", ac.DeleteUserAccount)
+		public.POST("", ac.CreateUserAccount)
+	}
+
+	protected := router.Group(ac.Path)
+	protected.Use(ac.authMiddleware.AuthMiddleware())
+	{
+		protected.PUT("", ac.UpdateUserAccount)
+		protected.DELETE("", ac.DeleteUserAccount)
 	}
 }
 
