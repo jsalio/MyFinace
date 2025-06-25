@@ -1,3 +1,4 @@
+basePath: /api
 definitions:
   dtos.CreateAccountRequest:
     properties:
@@ -65,10 +66,21 @@ definitions:
     required:
     - id
     type: object
+host: localhost:8085
 info:
-  contact: {}
+  contact:
+    email: support@yourdomain.com
+    name: API Support
+    url: http://www.yourdomain.com/support
+  description: This is a financial application server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Financial App API
+  version: "1.0"
 paths:
-  /api/account:
+  /account:
     delete:
       consumes:
       - application/json
@@ -158,4 +170,9 @@ paths:
       summary: Actualizar usuario
       tags:
       - Account
+securityDefinitions:
+  Bearer:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

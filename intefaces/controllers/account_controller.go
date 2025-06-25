@@ -68,7 +68,7 @@ func (ac *AccountController) RegisterRoutes(router *gin.RouterGroup) {
 // @Success 200 {object} dtos.CreateAccountResponse "Usuario creado exitosamente"
 // @Failure 400 {object} dtos.ErrorResponse "Error en la solicitud"
 // @Failure 500 {object} dtos.ErrorResponse "Error interno del servidor"
-// @Router /api/account [post]
+// @Router /account [post]
 func (ac *AccountController) CreateUserAccount(c *gin.Context) {
 	var request dtos.CreateAccountRequest
 
@@ -108,7 +108,7 @@ func (ac *AccountController) CreateUserAccount(c *gin.Context) {
 // @Success 200 {object} dtos.UpdateAccountResponse "Usuario actualizado exitosamente"
 // @Failure 400 {object} dtos.ErrorResponse "Error en la solicitud"
 // @Failure 500 {object} dtos.ErrorResponse "Error interno del servidor"
-// @Router /api/account [put]
+// @Router /account [put]
 func (ac *AccountController) UpdateUserAccount(c *gin.Context) {
 	var request dtos.UpdateAccountRequest
 
@@ -153,7 +153,7 @@ func (ac *AccountController) UpdateUserAccount(c *gin.Context) {
 // @Success 200 {object} map[string]string "Mensaje de éxito"
 // @Failure 400 {object} dtos.ErrorResponse "Error en la solicitud"
 // @Failure 500 {object} dtos.ErrorResponse "Error interno del servidor"
-// @Router /api/account [delete]
+// @Router /account [delete]
 func (ac *AccountController) DeleteUserAccount(c *gin.Context) {
 	var request dtos.DeleteAccountRequest
 
