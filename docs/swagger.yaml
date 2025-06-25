@@ -68,7 +68,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /account:
+  /api/account:
     delete:
       consumes:
       - application/json
@@ -99,7 +99,7 @@ paths:
             $ref: '#/definitions/dtos.ErrorResponse'
       summary: Eliminar usuario
       tags:
-      - usuarios
+      - Account
     post:
       consumes:
       - application/json
@@ -128,7 +128,7 @@ paths:
             $ref: '#/definitions/dtos.ErrorResponse'
       summary: Crear un nuevo usuario
       tags:
-      - usuarios
+      - Account
     put:
       consumes:
       - application/json
@@ -157,5 +157,5 @@ paths:
             $ref: '#/definitions/dtos.ErrorResponse'
       summary: Actualizar usuario
       tags:
-      - usuarios
+      - Account
 swagger: "2.0"

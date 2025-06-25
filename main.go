@@ -38,6 +38,21 @@ func PassPrerequirements() bool {
 	return true
 }
 
+// Antes de la función main
+// @title           Financial App API
+// @version         1.0
+// @description     This is a financial application server.
+// @termsOfService  http://swagger.io/terms/
+// @contact.name   API Support
+// @contact.url    http://www.yourdomain.com/support
+// @contact.email  support@yourdomain.com
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+// @host      localhost:8085
+// @BasePath  /api
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
 func main() {
 	passRequirements := PassPrerequirements()
 	if !passRequirements {

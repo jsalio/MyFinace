@@ -44,12 +44,13 @@ func NewAccountController(userUseCase ports.UserUseCase, authMiddlerware *middle
 
 func (ac *AccountController) RegisterRoutes(router *gin.RouterGroup) {
 	ac.authMiddleware.Config.AddPublicRoute("POST", "/api/account")
-	public := router.Group(ac.Path)
+
+	public := router.Group("/account")
 	{
 		public.POST("", ac.CreateUserAccount)
 	}
 
-	protected := router.Group(ac.Path)
+	protected := router.Group("/account")
 	protected.Use(ac.authMiddleware.AuthMiddleware())
 	{
 		protected.PUT("", ac.UpdateUserAccount)
@@ -60,14 +61,14 @@ func (ac *AccountController) RegisterRoutes(router *gin.RouterGroup) {
 // CreateUserAccount crea una nueva cuenta de usuario
 // @Summary Crear un nuevo usuario
 // @Description Crea un nuevo usuario con la información proporcionada
-// @Tags usuarios
+// @Tags Account
 // @Accept json
 // @Produce json
 // @param request body dtos.CreateAccountRequest true "Datos del usuario nuevo"
 // @Success 200 {object} dtos.CreateAccountResponse "Usuario creado exitosamente"
 // @Failure 400 {object} dtos.ErrorResponse "Error en la solicitud"
 // @Failure 500 {object} dtos.ErrorResponse "Error interno del servidor"
-// @Router /account [post]
+// @Router /api/account [post]
 func (ac *AccountController) CreateUserAccount(c *gin.Context) {
 	var request dtos.CreateAccountRequest
 
@@ -100,14 +101,14 @@ func (ac *AccountController) CreateUserAccount(c *gin.Context) {
 // UpdateUserAccount actualiza la información de un usuario existente
 // @Summary Actualizar usuario
 // @Description Actualiza la información de un usuario existente
-// @Tags usuarios
+// @Tags Account
 // @Accept json
 // @Produce json
 // @Param request body dtos.UpdateAccountRequest true "Datos actualizados del usuario"
 // @Success 200 {object} dtos.UpdateAccountResponse "Usuario actualizado exitosamente"
 // @Failure 400 {object} dtos.ErrorResponse "Error en la solicitud"
 // @Failure 500 {object} dtos.ErrorResponse "Error interno del servidor"
-// @Router /account [put]
+// @Router /api/account [put]
 func (ac *AccountController) UpdateUserAccount(c *gin.Context) {
 	var request dtos.UpdateAccountRequest
 
@@ -145,14 +146,14 @@ func (ac *AccountController) UpdateUserAccount(c *gin.Context) {
 // DeleteUserAccount elimina una cuenta de usuario
 // @Summary Eliminar usuario
 // @Description Elimina un usuario existente por su email
-// @Tags usuarios
+// @Tags Account
 // @Accept json
 // @Produce json
 // @Param request body dtos.DeleteAccountRequest true "Email del usuario a eliminar"
 // @Success 200 {object} map[string]string "Mensaje de éxito"
 // @Failure 400 {object} dtos.ErrorResponse "Error en la solicitud"
 // @Failure 500 {object} dtos.ErrorResponse "Error interno del servidor"
-// @Router /account [delete]
+// @Router /api/account [delete]
 func (ac *AccountController) DeleteUserAccount(c *gin.Context) {
 	var request dtos.DeleteAccountRequest
 

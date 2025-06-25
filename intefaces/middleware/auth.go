@@ -50,15 +50,6 @@ func (m *AuthMiddleware) SkipAuth(c *gin.Context, skipRoutes []string) bool {
 
 // AuthMiddleware verifica el token JWT en las cabeceras de la solicitud
 func (m *AuthMiddleware) AuthMiddleware() gin.HandlerFunc {
-	// Rutas que no requieren autenticación
-	// skipRoutes := []string{
-	// 	"/swagger/",
-	// 	"/api/auth/login",
-	// 	"/api/auth/register",
-	// 	"/api/account",
-	// 	// Agrega aquí más rutas que no requieran autenticación
-	// }
-
 	return func(c *gin.Context) {
 		// Verificar si la ruta actual está en la lista de rutas que no requieren autenticación
 

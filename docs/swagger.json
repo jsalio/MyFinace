@@ -4,7 +4,7 @@
         "contact": {}
     },
     "paths": {
-        "/account": {
+        "/api/account": {
             "put": {
                 "description": "Actualiza la información de un usuario existente",
                 "consumes": [
@@ -14,7 +14,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "usuarios"
+                    "Account"
                 ],
                 "summary": "Actualizar usuario",
                 "parameters": [
@@ -58,7 +58,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "usuarios"
+                    "Account"
                 ],
                 "summary": "Crear un nuevo usuario",
                 "parameters": [
@@ -102,7 +102,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "usuarios"
+                    "Account"
                 ],
                 "summary": "Eliminar usuario",
                 "parameters": [
