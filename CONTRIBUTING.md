@@ -31,6 +31,24 @@ SUPABASE_KEY=tu_clave_secreta_de_supabase
 
 El proyecto utiliza Go Modules para la gestión de dependencias. Las dependencias se descargarán automáticamente al compilar el proyecto.
 
+En la terminal :
+```bash
+npm i
+```
+y despues :
+```bash 
+npx supabase login
+```
+y para configurar la conexion a la base de datos
+```bash
+npx supabase link --project-ref <you-projec-ref>
+```
+
+para subir migraciones :
+```bash
+npx supabase db push
+```
+
 ### 4. Ejecutar la Aplicación
 
 Para iniciar el servidor de desarrollo:
@@ -85,6 +103,20 @@ Para ejecutar las pruebas del proyecto:
 
 ```bash
 go test ./...
+```
+
+## migraciones
+
+generar con :
+```bash
+npx supabase migration new your-migration-name  
+```
+
+esto generara un archivo sql en `/supabase/migrations`.
+
+publicar cambio con :
+```bash
+npx supabase db push      
 ```
 
 ## Soporte
