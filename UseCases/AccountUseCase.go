@@ -2,7 +2,7 @@ package usecases
 
 import (
 	"Financial/Domains/ports"
-	models "Financial/Models"
+	"Financial/Models/db"
 	"Financial/infrastructure"
 	"Financial/types"
 	"errors"
@@ -15,16 +15,16 @@ import (
 var ErrNotFound = infrastructure.ErrNotFound
 
 type AccountUseCase struct {
-	repository ports.Repository[models.User, int]
+	repository ports.Repository[db.User, int]
 }
 
-func NewAccountUseCase(repo ports.Repository[models.User, int]) ports.UserUseCase {
+func NewAccountUseCase(repo ports.Repository[db.User, int]) ports.UserUseCase {
 	return &AccountUseCase{
 		repository: repo,
 	}
 }
 
-func (uc *AccountUseCase) CreateAccount(nick string, email string, password string) (*models.User, error) {
+func (uc *AccountUseCase) CreateAccount(nick string, email string, password string) (*db.User, error) {
 
 	// Validaciones de entrada
 	if strings.TrimSpace(nick) == "" {
@@ -56,7 +56,7 @@ func (uc *AccountUseCase) CreateAccount(nick string, email string, password stri
 		return nil, fmt.Errorf("error checking nick existence: %w", err)
 	}
 
-	account := &models.User{
+	account := &db.User{
 		Nickname:  nick,
 		FirstName: "",
 		Lastname:  "",
@@ -88,7 +88,7 @@ func (uc *AccountUseCase) DestroyAccount(email string) error {
 	return uc.repository.Delete(user.ID)
 }
 
-func (uc *AccountUseCase) UpdateAccount(req models.UpdateAccountRequest) (*models.User, error) {
+func (uc *AccountUseCase) UpdateAccount(req db.UpdateAccountRequest) (*db.User, error) {
 	fmt.Printf("%v", req)
 	if strings.TrimSpace(req.Email) == "" {
 		return nil, errors.New("email cannot be empty")

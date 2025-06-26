@@ -1,6 +1,8 @@
 package ports
 
-import models "Financial/Models"
+import (
+	"Financial/Models/db"
+)
 
 // UserUseCase defines the business logic operations for user account management.
 // This interface serves as a contract for user-related use cases in the application.
@@ -15,7 +17,7 @@ type UserUseCase interface {
 	// Returns:
 	//   - *models.User: The newly created user object with system-generated fields populated
 	//   - error:       Error if account creation fails (e.g., duplicate email, invalid input)
-	CreateAccount(nick string, email string, password string) (*models.User, error)
+	CreateAccount(nick string, email string, password string) (*db.User, error)
 
 	// DestroyAccount permanently deletes a user account identified by email.
 	//
@@ -34,5 +36,5 @@ type UserUseCase interface {
 	// Returns:
 	//   - *models.User: The updated user object
 	//   - error:       Error if update fails (e.g., invalid data, user not found)
-	UpdateAccount(user models.UpdateAccountRequest) (*models.User, error)
+	UpdateAccount(user db.UpdateAccountRequest) (*db.User, error)
 }

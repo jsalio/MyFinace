@@ -2,7 +2,7 @@ package usecases
 
 import (
 	"Financial/Domains/ports"
-	models "Financial/Models"
+	"Financial/Models/db"
 	"Financial/infrastructure"
 	"Financial/types"
 	"errors"
@@ -12,18 +12,18 @@ import (
 
 // WalletUseCase implements the WalletUseCase interface
 type WalletUseCase struct {
-	repository ports.Repository[models.Wallet, int]
+	repository ports.Repository[db.Wallet, int]
 }
 
 // NewWalletUseCase creates a new instance of WalletUseCase
-func NewWalletUseCase(repo ports.Repository[models.Wallet, int]) ports.WalletUseCase {
+func NewWalletUseCase(repo ports.Repository[db.Wallet, int]) ports.WalletUseCase {
 	return &WalletUseCase{
 		repository: repo,
 	}
 }
 
 // CreateWallet implements WalletUseCase.CreateWallet
-func (uc *WalletUseCase) CreateWallet(name string, walletType types.WalletType, balance float64, userID int) (*models.Wallet, error) {
+func (uc *WalletUseCase) CreateWallet(name string, walletType types.WalletType, balance float64, userID int) (*db.Wallet, error) {
 	// Input validations
 	if strings.TrimSpace(name) == "" {
 		return nil, errors.New("wallet name cannot be empty")
@@ -49,7 +49,7 @@ func (uc *WalletUseCase) CreateWallet(name string, walletType types.WalletType, 
 		}
 	}
 
-	wallet := &models.Wallet{
+	wallet := &db.Wallet{
 		Name:    name,
 		Type:    walletType,
 		Balance: balance,
@@ -60,7 +60,7 @@ func (uc *WalletUseCase) CreateWallet(name string, walletType types.WalletType, 
 }
 
 // UpdateWallet implements WalletUseCase.UpdateWallet
-func (uc *WalletUseCase) UpdateWallet(walletID int, name string, walletType *types.WalletType, balance *float64) (*models.Wallet, error) {
+func (uc *WalletUseCase) UpdateWallet(walletID int, name string, walletType *types.WalletType, balance *float64) (*db.Wallet, error) {
 	// Input validation
 	if walletID <= 0 {
 		return nil, errors.New("invalid wallet ID")

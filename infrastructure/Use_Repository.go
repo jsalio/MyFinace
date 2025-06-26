@@ -2,7 +2,7 @@ package infrastructure
 
 import (
 	"Financial/Domains/ports"
-	models "Financial/Models"
+	"Financial/Models/db"
 	"errors"
 	"fmt"
 	"strconv"
@@ -17,7 +17,7 @@ type SupaBaseUserRepository struct {
 	client *supabase.Client
 }
 
-func NewSupaBaseUserRepository(client *supabase.Client) ports.Repository[models.User, int] {
+func NewSupaBaseUserRepository(client *supabase.Client) ports.Repository[db.User, int] {
 	return &SupaBaseUserRepository{client: client}
 }
 
@@ -32,7 +32,7 @@ type CreateUser struct {
 	Password  string    `json:"password"`
 }
 
-func (repo *SupaBaseUserRepository) Create(model *models.User) (*models.User, error) {
+func (repo *SupaBaseUserRepository) Create(model *db.User) (*db.User, error) {
 	// Create a new user without the ID field
 	newUser := CreateUser{
 		Nickname:  model.Nickname,
@@ -44,7 +44,7 @@ func (repo *SupaBaseUserRepository) Create(model *models.User) (*models.User, er
 		Password:  model.Password,
 	}
 
-	var result models.User
+	var result db.User
 	_, err := repo.client.From(table_string).
 		Insert(newUser, false, "", "representation", "").
 		Single().
@@ -65,8 +65,8 @@ func (repo *SupaBaseUserRepository) Delete(id int) error {
 // ErrNotFound is returned when a record is not found
 var ErrNotFound = errors.New("record not found")
 
-func (repo *SupaBaseUserRepository) FindByField(field string, value any) (*models.User, error) {
-	var results []models.User
+func (repo *SupaBaseUserRepository) FindByField(field string, value any) (*db.User, error) {
+	var results []db.User
 
 	var filterValue string
 	switch v := value.(type) {
@@ -101,8 +101,8 @@ func (repo *SupaBaseUserRepository) FindByField(field string, value any) (*model
 	return &results[0], nil
 }
 
-func (repo *SupaBaseUserRepository) GetAll() ([]models.User, error) {
-	var todos []models.User
+func (repo *SupaBaseUserRepository) GetAll() ([]db.User, error) {
+	var todos []db.User
 	_, err := repo.client.From(table_string).Select("*", "exact", false).
 		ExecuteTo(&todos)
 	if err != nil {
@@ -111,8 +111,8 @@ func (repo *SupaBaseUserRepository) GetAll() ([]models.User, error) {
 	return todos, nil
 }
 
-func (repo *SupaBaseUserRepository) GetByID(id int) (*models.User, error) {
-	var todo models.User
+func (repo *SupaBaseUserRepository) GetByID(id int) (*db.User, error) {
+	var todo db.User
 	_, err := repo.client.From(table_string).Select("*", "exact", false).Eq("id", strconv.Itoa(id)).
 		Single().ExecuteTo(&todo)
 	if err != nil {
@@ -121,8 +121,8 @@ func (repo *SupaBaseUserRepository) GetByID(id int) (*models.User, error) {
 	return &todo, nil
 }
 
-func (r *SupaBaseUserRepository) Update(todo *models.User) (*models.User, error) {
-	var result []models.User
+func (r *SupaBaseUserRepository) Update(todo *db.User) (*db.User, error) {
+	var result []db.User
 	_, err := r.client.From(table_string).Update(todo, "", "").Eq("id", strconv.Itoa(todo.ID)).
 		ExecuteTo(&result)
 	if err != nil {

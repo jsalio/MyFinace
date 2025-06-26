@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"Financial/Domains/ports"
-	models "Financial/Models"
-	"Financial/intefaces/controllers/dtos"
+	"Financial/Models/db"
+	"Financial/Models/dtos"
 	"Financial/intefaces/middleware"
 	"Financial/types"
 
@@ -120,7 +120,7 @@ func (ac *AccountController) UpdateUserAccount(c *gin.Context) {
 		return
 	}
 
-	account, err := ac.userUseCase.UpdateAccount(models.UpdateAccountRequest{
+	account, err := ac.userUseCase.UpdateAccount(db.UpdateAccountRequest{
 		ID:        request.ID,
 		FirstName: request.FirstName,
 		Lastname:  request.LastName,

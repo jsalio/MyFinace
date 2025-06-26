@@ -1,6 +1,6 @@
 // Package models contains the data structures used throughout the application.
 // This file defines the Wallet structure and its related operations.
-package models
+package db
 
 import (
 	"Financial/types"
