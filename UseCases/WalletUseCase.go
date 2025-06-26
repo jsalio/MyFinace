@@ -3,8 +3,8 @@ package usecases
 import (
 	"Financial/Domains/ports"
 	"Financial/Models/db"
+	"Financial/Models/dtos"
 	"Financial/infrastructure"
-	"Financial/types"
 	"errors"
 	"fmt"
 	"strings"
@@ -23,17 +23,17 @@ func NewWalletUseCase(repo ports.Repository[db.Wallet, int]) ports.WalletUseCase
 }
 
 // CreateWallet implements WalletUseCase.CreateWallet
-func (uc *WalletUseCase) CreateWallet(name string, walletType types.WalletType, balance float64, userID int) (*db.Wallet, error) {
+func (uc *WalletUseCase) CreateWallet(request dtos.CreateWalletRequest) (*db.Wallet, error) {
 	// Input validations
-	if strings.TrimSpace(name) == "" {
+	if strings.TrimSpace(request.Name) == "" {
 		return nil, errors.New("wallet name cannot be empty")
 	}
 
-	if balance < 0 {
+	if request.Balance < 0 {
 		return nil, errors.New("initial balance cannot be negative")
 	}
 
-	if userID <= 0 {
+	if request.UserID <= 0 {
 		return nil, errors.New("invalid user ID")
 	}
 
@@ -44,30 +44,30 @@ func (uc *WalletUseCase) CreateWallet(name string, walletType types.WalletType, 
 	}
 
 	for _, w := range existingWallets {
-		if w.Name == name && w.UserID == userID {
+		if w.Name == request.Name && w.UserID == request.UserID {
 			return nil, errors.New("a wallet with this name already exists for this user")
 		}
 	}
 
 	wallet := &db.Wallet{
-		Name:    name,
-		Type:    walletType,
-		Balance: balance,
-		UserID:  userID,
+		Name:    request.Name,
+		Type:    request.WalletType,
+		Balance: request.Balance,
+		UserID:  request.UserID,
 	}
 
 	return uc.repository.Create(wallet)
 }
 
 // UpdateWallet implements WalletUseCase.UpdateWallet
-func (uc *WalletUseCase) UpdateWallet(walletID int, name string, walletType *types.WalletType, balance *float64) (*db.Wallet, error) {
+func (uc *WalletUseCase) UpdateWallet(request dtos.UpdateWalletRequest) (*db.Wallet, error) {
 	// Input validation
-	if walletID <= 0 {
+	if request.WalletID <= 0 {
 		return nil, errors.New("invalid wallet ID")
 	}
 
 	// Get existing wallet
-	existingWallet, err := uc.repository.FindByField("id", walletID)
+	existingWallet, err := uc.repository.FindByField("id", request.WalletID)
 	if err != nil {
 		if err == infrastructure.ErrNotFound {
 			return nil, errors.New("wallet not found")
@@ -78,7 +78,7 @@ func (uc *WalletUseCase) UpdateWallet(walletID int, name string, walletType *typ
 	// Update fields if provided
 	updated := false
 
-	if name != "" && name != existingWallet.Name {
+	if request.Name != "" && request.Name != existingWallet.Name {
 		// Check if new name is already taken by another wallet of the same user
 		existingWallets, err := uc.repository.GetAll()
 		if err != nil {
@@ -86,25 +86,25 @@ func (uc *WalletUseCase) UpdateWallet(walletID int, name string, walletType *typ
 		}
 
 		for _, w := range existingWallets {
-			if w.Name == name && w.UserID == existingWallet.UserID && w.ID != walletID {
+			if w.Name == request.Name && w.UserID == existingWallet.UserID && w.ID != request.WalletID {
 				return nil, errors.New("a wallet with this name already exists for this user")
 			}
 		}
 
-		existingWallet.Name = name
+		existingWallet.Name = request.Name
 		updated = true
 	}
 
-	if walletType != nil && *walletType != existingWallet.Type {
-		existingWallet.Type = *walletType
+	if request.WalletType != nil && request.WalletType != &existingWallet.Type {
+		existingWallet.Type = *request.WalletType
 		updated = true
 	}
 
-	if balance != nil && *balance != existingWallet.Balance {
-		if *balance < 0 {
+	if request.Balance != nil && *request.Balance != existingWallet.Balance {
+		if *request.Balance < 0 {
 			return nil, errors.New("balance cannot be negative")
 		}
-		existingWallet.Balance = *balance
+		existingWallet.Balance = *request.Balance
 		updated = true
 	}
 

@@ -2,7 +2,7 @@ package ports
 
 import (
 	"Financial/Models/db"
-	"Financial/types"
+	"Financial/Models/dtos"
 )
 
 // WalletUseCase defines the interface for wallet-related business logic operations.
@@ -18,7 +18,7 @@ type WalletUseCase interface {
 	// Returns:
 	//   - *models.Wallet: The newly created wallet
 	//   - error:         Error if creation fails (e.g., invalid data, duplicate name)
-	CreateWallet(name string, walletType types.WalletType, balance float64, userID int) (*db.Wallet, error)
+	CreateWallet(request dtos.CreateWalletRequest) (*db.Wallet, error)
 
 	// UpdateWallet updates an existing wallet with new information
 	//
@@ -31,7 +31,7 @@ type WalletUseCase interface {
 	// Returns:
 	//   - *models.Wallet: The updated wallet
 	//   - error:         Error if update fails (e.g., invalid data, wallet not found)
-	UpdateWallet(walletID int, name string, walletType *types.WalletType, balance *float64) (*db.Wallet, error)
+	UpdateWallet(request dtos.UpdateWalletRequest) (*db.Wallet, error)
 
 	// DeleteWallet removes a wallet by its ID
 	//
