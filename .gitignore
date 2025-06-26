@@ -9,6 +9,7 @@ todo-cli
 todo-app
 Financial
 *debug*
+*coverage*
 
 /node_modules
 .env*

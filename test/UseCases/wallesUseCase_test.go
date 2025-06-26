@@ -116,6 +116,20 @@ func TestWalletUseCase_CreateWallet(t *testing.T) {
 			expectErr:   true,
 			expectedErr: errors.New("a wallet with this name already exists for this user"),
 		},
+		{
+			name: "error checking wallet existence",
+			req: dtos.CreateWalletRequest{
+				Name:       "Savings",
+				WalletType: types.Debit,
+				Balance:    1000.0,
+				UserID:     1,
+			},
+			expectErr:   true,
+			expectedErr: errors.New("error checking wallet existence"),
+			setupMock: func(mock *mocks.MockRepository[db.Wallet, int]) {
+				mock.SetResponse("GetAll", nil, errors.New("database error"))
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -239,6 +253,66 @@ func TestWalletUseCase_UpdateWallet(t *testing.T) {
 			expectErr:   true,
 			expectedErr: errors.New("balance cannot be negative"),
 		},
+		{
+			name: "error fetching wallet",
+			req: dtos.UpdateWalletRequest{
+				WalletID: 1,
+			},
+			expectErr:   true,
+			expectedErr: errors.New("error fetching wallet"),
+			setupMock: func(mock *mocks.MockRepository[db.Wallet, int]) {
+				mock.SetResponse("FindByField", nil, errors.New("database error"))
+			},
+		},
+		{
+			name: "Error when wallet id is zero",
+			req: dtos.UpdateWalletRequest{
+				WalletID: 0,
+			},
+			expectErr:   true,
+			expectedErr: errors.New("invalid wallet ID"),
+			setupMock:   func(mr *mocks.MockRepository[db.Wallet, int]) {},
+		},
+		{
+			name: "error checking wallet names during update",
+			req: dtos.UpdateWalletRequest{
+				WalletID: 1,
+				Name:     "New Name", // Un nombre diferente al existente para que entre en la validación
+			},
+			expectErr:   true,
+			expectedErr: errors.New("error checking wallet names"),
+			setupMock: func(mr *mocks.MockRepository[db.Wallet, int]) {
+				// Mock para FindByField que devuelve una billetera existente
+				mr.SetResponse("FindByField", &db.Wallet{
+					ID:      1,
+					Name:    "Old Name",
+					Type:    "Debit",
+					Balance: 1000.0,
+					UserID:  1,
+				}, nil)
+				// Mock para GetAll que devuelve un error
+				mr.SetResponse("GetAll", nil, errors.New("database error"))
+			},
+		},
+		{
+			name: "no changes made during update",
+			req: dtos.UpdateWalletRequest{
+				WalletID: 1,
+				Name:     "Old Name", // Same name as existing
+			},
+			expectErr:   false,
+			expectedErr: nil,
+			setupMock: func(mr *mocks.MockRepository[db.Wallet, int]) {
+				// Mock para FindByField que devuelve una billetera existente
+				mr.SetResponse("FindByField", &db.Wallet{
+					ID:      1,
+					Name:    "Old Name",
+					Type:    "Debit",
+					Balance: 1000.0,
+					UserID:  1,
+				}, nil)
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -302,6 +376,24 @@ func TestWalletUseCase_DeleteWallet(t *testing.T) {
 			},
 			expectErr:   true,
 			expectedErr: errors.New("wallet not found"),
+		},
+		{
+			name:     "wallet not found",
+			walletID: 999,
+			setupMock: func(mock *mocks.MockRepository[db.Wallet, int]) {
+				mock.SetResponse("GetByID", nil, infrastructure.ErrNotFound)
+			},
+			expectErr:   true,
+			expectedErr: errors.New("wallet not found"),
+		},
+		{
+			name:     "error fetching wallet",
+			walletID: 1,
+			setupMock: func(mock *mocks.MockRepository[db.Wallet, int]) {
+				mock.SetResponse("GetByID", nil, errors.New("database error"))
+			},
+			expectErr:   true,
+			expectedErr: errors.New("error fetching wallet: database error"),
 		},
 	}
 

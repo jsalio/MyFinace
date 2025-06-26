@@ -52,6 +52,17 @@ En la consola escribe
 swag init -g interfaces/server.go
 ```
 
+## Run test
+
+```bash
+   make test
+```
+## Run test and coverage
+
+```bash
+   make test-coverage
+```
+
 ## Documentación de la API
 
 Accede a la documentación interactiva en:
