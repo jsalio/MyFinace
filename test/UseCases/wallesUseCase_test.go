@@ -17,15 +17,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type TestSetup[T any] struct {
+	name        string
+	req         T
+	expectErr   bool
+	expectedErr error
+	setupMock   func(*mocks.MockRepository[db.Wallet, int])
+	verify      func(t *testing.T, wallet *db.Wallet, err error)
+}
+
 func TestWalletUseCase_CreateWallet(t *testing.T) {
-	tests := []struct {
-		name        string
-		req         dtos.CreateWalletRequest
-		expectErr   bool
-		expectedErr error
-		setupMock   func(*mocks.MockRepository[db.Wallet, int])
-		verify      func(t *testing.T, wallet *db.Wallet, err error)
-	}{
+	tests := []TestSetup[dtos.CreateWalletRequest]{
 		{
 			name: "successful wallet creation",
 			req: dtos.CreateWalletRequest{
@@ -158,14 +160,7 @@ func TestWalletUseCase_CreateWallet(t *testing.T) {
 }
 
 func TestWalletUseCase_UpdateWallet(t *testing.T) {
-	tests := []struct {
-		name        string
-		req         dtos.UpdateWalletRequest
-		expectErr   bool
-		expectedErr error
-		setupMock   func(*mocks.MockRepository[db.Wallet, int])
-		verify      func(t *testing.T, wallet *db.Wallet, err error)
-	}{
+	tests := []TestSetup[dtos.UpdateWalletRequest]{
 		{
 			name: "successful wallet update",
 			req: dtos.UpdateWalletRequest{
