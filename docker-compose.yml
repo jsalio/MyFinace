@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  financial-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: financial-app
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    env_file:
+      - .env
+    environment:
+      - PORT=8085
+    networks:
+      - financial-network
+
+networks:
+  financial-network:
+    driver: bridge
