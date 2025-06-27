@@ -153,20 +153,23 @@ func (uc *WalletUseCase) GetUserWallet(id int, email string) (*ports.UserWallet,
 
 	var result ports.UserWallet
 
-	if len(data.([]db.Wallet)) == 0 {
-		result.Email = email
-		result.Wallets = []struct {
-			Name    string           "json:\"name\""
-			Type    types.WalletType "json:\"type\""
-			Balance float64          "json:\"balance\""
-		}{}
-		return &result, nil
-	}
-
 	// Type assert the result to *ports.UserWallet
 	wallet, ok := data.([]db.Wallet)
 	if !ok {
-		return nil, fmt.Errorf("unexpected type returned from repository: %T", data)
+		return nil, errors.New("unexpected type returned from repository")
+	}
+
+	result = ports.UserWallet{
+		Email: email,
+	}
+
+	if len(wallet) == 0 {
+		result.Wallets = []struct {
+			Name    string           `json:"name"`
+			Type    types.WalletType `json:"type"`
+			Balance float64          `json:"balance"`
+		}{}
+		return &result, nil
 	}
 
 	result.Email = wallet[0].User.Email

@@ -4,20 +4,27 @@ import (
 	"errors"
 	"testing"
 
-	// "Financial/Domains/ports"
-
 	"Financial/Domains/ports"
 	"Financial/Models/db"
 	"Financial/Models/dtos"
-	"Financial/infrastructure"
-	"Financial/types"
-
-	// "Financial/UseCases"
 	usecases "Financial/UseCases"
+	"Financial/infrastructure"
 	mocks "Financial/test"
+
+	"Financial/types"
 
 	"github.com/stretchr/testify/assert"
 )
+
+// errorProneMockRepository is a custom mock that will return an invalid type for Query
+type errorProneMockRepository struct {
+	mocks.MockRepository[db.Wallet, int]
+}
+
+func (m *errorProneMockRepository) Query(query string, args ports.QueryOptions) (interface{}, error) {
+	// Return an invalid type that will cause the type assertion to fail
+	return []struct{}{}, nil
+}
 
 func TestWalletUseCase_CreateWallet(t *testing.T) {
 	tests := []mocks.TestSetup[dtos.CreateWalletRequest, db.Wallet, int]{
@@ -422,7 +429,29 @@ func float64Ptr(f float64) *float64 {
 }
 
 func TestWalletUseCase_GetUserWallet(t *testing.T) {
-	// Setup test cases
+	// Test case for type assertion error
+	t.Run("error - unexpected type from repository", func(t *testing.T) {
+		// Crear el mock del repositorio
+		mockRepo := &errorProneMockRepository{
+			MockRepository: *mocks.NewMockRepository[db.Wallet, int](),
+		}
+
+		// Configurar el mock para devolver un tipo incorrecto
+		mockRepo.SetResponse("Query", []struct{}{}, assert.AnError)
+
+		// Crear el caso de uso con el mock
+		uc := usecases.NewWalletUseCase(mockRepo)
+
+		// Llamar al método bajo prueba
+		result, err := uc.GetUserWallet(1, "test@example.com")
+
+		// Verificar los resultados
+		assert.Error(t, err, "Expected an error due to type assertion failure")
+		assert.Nil(t, result, "Result should be nil on error")
+		assert.Contains(t, err.Error(), "unexpected type returned from repository", "Error message should indicate type assertion failure")
+	})
+
+	// Setup other test cases
 	tests := []struct {
 		name         string
 		mockSetup    func(*mocks.MockRepository[db.Wallet, int])
@@ -497,16 +526,6 @@ func TestWalletUseCase_GetUserWallet(t *testing.T) {
 			mockSetup: func(mockRepo *mocks.MockRepository[db.Wallet, int]) {
 				// Mock the Query method to return an error
 				mockRepo.SetResponse("Query", nil, errors.New("database error"))
-			},
-			expectError: true,
-		},
-		{
-			name:   "error - unexpected type from repository",
-			userID: 1,
-			email:  "test@example.com",
-			mockSetup: func(mockRepo *mocks.MockRepository[db.Wallet, int]) {
-				// Mock the Query method to return an unexpected type by using a custom response handler
-				mockRepo.SetResponse("Query", []struct{}{}, nil) // This will cause a type assertion failure
 			},
 			expectError: true,
 		},
