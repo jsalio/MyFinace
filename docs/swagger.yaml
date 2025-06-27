@@ -163,7 +163,14 @@ definitions:
         type: string
       wallets:
         items:
-          $ref: '#/definitions/db.Wallet'
+          properties:
+            balance:
+              type: number
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.WalletType'
+          type: object
         type: array
     type: object
   types.AccountStatus:

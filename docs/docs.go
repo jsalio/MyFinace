@@ -639,7 +639,18 @@ const docTemplate = `{
                 "wallets": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/db.Wallet"
+                        "type": "object",
+                        "properties": {
+                            "balance": {
+                                "type": "number"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.WalletType"
+                            }
+                        }
                     }
                 }
             }

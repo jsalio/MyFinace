@@ -138,9 +138,29 @@ func (uc *WalletUseCase) DeleteWallet(walletID int) error {
 }
 
 func (uc *WalletUseCase) GetUserWallet(id int, email string) (*ports.UserWallet, error) {
-	data, err := uc.repository.Query("id,name,type,balance,user:users!inner(email)", nil)
+	data, err := uc.repository.Query("id,name,type,balance,user:users!inner(email)", ports.QueryOptions{
+		Filters: []ports.Filter{
+			ports.Filter{
+				Field:    "users.email",
+				Operator: "eq",
+				Value:    email,
+			},
+		},
+	})
 	if err != nil {
 		return nil, err
+	}
+
+	var result ports.UserWallet
+
+	if len(data.([]db.Wallet)) == 0 {
+		result.Email = email
+		result.Wallets = []struct {
+			Name    string           "json:\"name\""
+			Type    types.WalletType "json:\"type\""
+			Balance float64          "json:\"balance\""
+		}{}
+		return &result, nil
 	}
 
 	// Type assert the result to *ports.UserWallet
@@ -148,8 +168,6 @@ func (uc *WalletUseCase) GetUserWallet(id int, email string) (*ports.UserWallet,
 	if !ok {
 		return nil, fmt.Errorf("unexpected type returned from repository: %T", data)
 	}
-
-	var result ports.UserWallet
 
 	result.Email = wallet[0].User.Email
 	for _, w := range wallet {
