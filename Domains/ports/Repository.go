@@ -58,16 +58,33 @@ type Repository[T any, ID comparable] interface {
 	Update(entity *T) (*T, error)
 
 	// Delete removes an entity from the repository by its ID.
-	// This operation is permanent and cannot be undone.
+	// This operation is idempotent - deleting a non-existent entity should not return an error.
 	//
 	// Parameters:
 	//   - id: The unique identifier of the entity to delete
 	//
 	// Returns:
-	//   - error: Error if the operation fails (e.g., entity not found, permission denied)
+	//   - error: Error if the operation fails (e.g., database connection error)
 	//
-	// Note: Some implementations might implement soft-delete instead of physical deletion
+	// Note: Some implementations might choose to implement soft delete instead of physical deletion
 	Delete(id ID) error
+
+	// Query executes a custom query and returns the result as type R.
+	// This method provides a flexible way to execute custom queries that don't fit the standard CRUD operations.
+	//
+	// Type parameters:
+	//   - R: The type of the result
+	//
+	// Parameters:
+	//   - query: The query to execute (format depends on the implementation)
+	//   - args: Optional arguments for the query
+	//
+	// Returns:
+	//   - R: The query result
+	//   - error: Error if the operation fails
+	//
+	// Note: The query format and arguments are implementation-specific
+	Query(query string, args ...interface{}) (any, error)
 
 	// FindByField retrieves the first entity that matches the given field-value pair.
 	// This method is useful for looking up entities by non-primary key fields.

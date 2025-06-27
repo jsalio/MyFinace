@@ -135,3 +135,18 @@ func (uc *WalletUseCase) DeleteWallet(walletID int) error {
 
 	return uc.repository.Delete(walletID)
 }
+
+func (uc *WalletUseCase) GetUserWallet(id int, email string) (*ports.UserWallet, error) {
+	data, err := uc.repository.Query("", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Type assert the result to *ports.UserWallet
+	userWallet, ok := data.(*ports.UserWallet)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type returned from repository: %T", data)
+	}
+
+	return userWallet, nil
+}

@@ -130,3 +130,12 @@ func (r *SupaBaseUserRepository) Update(todo *db.User) (*db.User, error) {
 	}
 	return &result[0], nil
 }
+
+// Query executes a custom query and returns the result as interface{}.
+// This method provides a flexible way to execute custom queries that don't fit the standard CRUD operations.
+func (r *SupaBaseUserRepository) Query(query string, args ...interface{}) (interface{}, error) {
+	// Implementación específica para Supabase
+	// Por ahora, devolvemos un error indicando que no está implementado
+	// Deberías implementar la lógica específica para tu base de datos Supabase aquí
+	return nil, errors.New("not implemented")
+}

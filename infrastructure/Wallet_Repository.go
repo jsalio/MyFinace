@@ -15,7 +15,7 @@ type SupaBaseWalletRepository struct {
 	client *supabase.Client
 }
 
-func NewSupaBaseWalletRepository(client *supabase.Client) ports.ExtendedRepository[db.Wallet, int] {
+func NewSupaBaseWalletRepository(client *supabase.Client) ports.Repository[db.Wallet, int] {
 	return &SupaBaseWalletRepository{client: client}
 }
 
@@ -116,4 +116,21 @@ func (r *SupaBaseWalletRepository) GetUserWallet(id int, email string) (*ports.U
 		return nil, fmt.Errorf("error fetching wallet with user: %w", err)
 	}
 	return &result, nil
+}
+
+// Query executes a custom query and returns the result as interface{}.
+// This method provides a flexible way to execute custom queries that don't fit the standard CRUD operations.
+func (r *SupaBaseWalletRepository) Query(query string, args ...interface{}) (interface{}, error) {
+	// Implementación específica para Supabase
+	// Por ahora, devolvemos un error indicando que no está implementado
+	// Deberías implementar la lógica específica para tu base de datos Supabase aquí
+	// return nil, errors.New("not implemented")
+	var wallet db.Wallet
+
+	_, err := r.client.From(walletTable).Select(" w.id, w.name, w.type, w.balance, user:users!inner(email)", "", false).ExecuteTo(&wallet)
+	if err != nil {
+		return nil, err
+	}
+
+	return wallet, nil
 }
