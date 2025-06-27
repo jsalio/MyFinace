@@ -6,6 +6,7 @@ import (
 
 	// "Financial/Domains/ports"
 
+	"Financial/Domains/ports"
 	"Financial/Models/db"
 	"Financial/Models/dtos"
 	"Financial/infrastructure"
@@ -418,4 +419,135 @@ func TestWalletUseCase_DeleteWallet(t *testing.T) {
 
 func float64Ptr(f float64) *float64 {
 	return &f
+}
+
+func TestWalletUseCase_GetUserWallet(t *testing.T) {
+	// Setup test cases
+	tests := []struct {
+		name         string
+		mockSetup    func(*mocks.MockRepository[db.Wallet, int])
+		userID       int
+		email        string
+		expectError  bool
+		expectWallet *ports.UserWallet
+	}{
+		{
+			name:   "success - user with wallets",
+			userID: 1,
+			email:  "test@example.com",
+			mockSetup: func(mockRepo *mocks.MockRepository[db.Wallet, int]) {
+				// Mock the Query method to return wallets for the user
+				mockWallets := []db.Wallet{
+					{
+						ID:      1,
+						Name:    "Savings",
+						Type:    types.Credit,
+						Balance: 1000.50,
+						User: &db.User{
+							Email: "test@example.com",
+						},
+					},
+					{
+						ID:      2,
+						Name:    "Checking",
+						Type:    types.Debit,
+						Balance: 500.75,
+						User: &db.User{
+							Email: "test@example.com",
+						},
+					},
+				}
+				mockRepo.SetResponse("Query", mockWallets, nil)
+			},
+			expectError: false,
+			expectWallet: &ports.UserWallet{
+				Email: "test@example.com",
+				Wallets: []struct {
+					Name    string           `json:"name"`
+					Type    types.WalletType `json:"type"`
+					Balance float64          `json:"balance"`
+				}{
+					{Name: "Savings", Type: types.Credit, Balance: 1000.50},
+					{Name: "Checking", Type: types.Debit, Balance: 500.75},
+				},
+			},
+		},
+		{
+			name:   "success - user with no wallets",
+			userID: 1,
+			email:  "test@example.com",
+			mockSetup: func(mockRepo *mocks.MockRepository[db.Wallet, int]) {
+				// Mock the Query method to return no wallets
+				mockRepo.SetResponse("Query", []db.Wallet{}, nil)
+			},
+			expectError: false,
+			expectWallet: &ports.UserWallet{
+				Email: "test@example.com",
+				Wallets: []struct {
+					Name    string           `json:"name"`
+					Type    types.WalletType `json:"type"`
+					Balance float64          `json:"balance"`
+				}{},
+			},
+		},
+		{
+			name:   "error - repository error",
+			userID: 1,
+			email:  "test@example.com",
+			mockSetup: func(mockRepo *mocks.MockRepository[db.Wallet, int]) {
+				// Mock the Query method to return an error
+				mockRepo.SetResponse("Query", nil, errors.New("database error"))
+			},
+			expectError: true,
+		},
+		{
+			name:   "error - unexpected type from repository",
+			userID: 1,
+			email:  "test@example.com",
+			mockSetup: func(mockRepo *mocks.MockRepository[db.Wallet, int]) {
+				// Mock the Query method to return an unexpected type by using a custom response handler
+				mockRepo.SetResponse("Query", []struct{}{}, nil) // This will cause a type assertion failure
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a new mock repository
+			mockRepo := mocks.NewMockRepository[db.Wallet, int]()
+
+			// Set up the mock expectations
+			if tt.mockSetup != nil {
+				tt.mockSetup(mockRepo)
+			}
+
+			// Create the use case with the mock repository
+			uc := usecases.NewWalletUseCase(mockRepo)
+
+			// Call the method being tested
+			result, err := uc.GetUserWallet(tt.userID, tt.email)
+
+			// Assert the results
+			if tt.expectError {
+				assert.Error(t, err, "Expected an error")
+			} else {
+				assert.NoError(t, err, "Unexpected error")
+				assert.Equal(t, tt.expectWallet.Email, result.Email, "Email should match")
+				assert.Len(t, result.Wallets, len(tt.expectWallet.Wallets), "Number of wallets should match")
+
+				// Compare each wallet
+				for i, expectedWallet := range tt.expectWallet.Wallets {
+					assert.Equal(t, expectedWallet.Name, result.Wallets[i].Name, "Wallet name should match")
+					assert.Equal(t, expectedWallet.Type, result.Wallets[i].Type, "Wallet type should match")
+					assert.Equal(t, expectedWallet.Balance, result.Wallets[i].Balance, "Wallet balance should match")
+				}
+
+				// Verify the query was called with the expected parameters
+				calls := mockRepo.Calls("Query")
+				assert.Len(t, calls, 1, "Query should be called once")
+
+			}
+		})
+	}
 }
