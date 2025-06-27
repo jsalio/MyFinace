@@ -5,6 +5,7 @@ import (
 	"Financial/Models/db"
 	"Financial/Models/dtos"
 	"Financial/infrastructure"
+	"Financial/types"
 	"errors"
 	"fmt"
 	"strings"
@@ -137,16 +138,31 @@ func (uc *WalletUseCase) DeleteWallet(walletID int) error {
 }
 
 func (uc *WalletUseCase) GetUserWallet(id int, email string) (*ports.UserWallet, error) {
-	data, err := uc.repository.Query("", nil)
+	data, err := uc.repository.Query("id,name,type,balance,user:users!inner(email)", nil)
 	if err != nil {
 		return nil, err
 	}
 
 	// Type assert the result to *ports.UserWallet
-	userWallet, ok := data.(*ports.UserWallet)
+	wallet, ok := data.([]db.Wallet)
 	if !ok {
 		return nil, fmt.Errorf("unexpected type returned from repository: %T", data)
 	}
 
-	return userWallet, nil
+	var result ports.UserWallet
+
+	result.Email = wallet[0].User.Email
+	for _, w := range wallet {
+		result.Wallets = append(result.Wallets, struct {
+			Name    string           "json:\"name\""
+			Type    types.WalletType "json:\"type\""
+			Balance float64          "json:\"balance\""
+		}{
+			Name:    w.Name,
+			Type:    w.Type,
+			Balance: w.Balance,
+		})
+	}
+
+	return &result, nil
 }

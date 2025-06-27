@@ -1,6 +1,8 @@
 package ports
 
-import "Financial/Models/db"
+import (
+	"Financial/types"
+)
 
 type UserWallet struct {
 	// ID is the unique identifier for the user
@@ -12,7 +14,11 @@ type UserWallet struct {
 	// Email is the user's email address (required, unique)
 	Email string `json:"email"`
 
-	Wallets []db.Wallet `json:"wallets"`
+	Wallets []struct {
+		Name    string           `json:"name"`
+		Type    types.WalletType `json:"type"`
+		Balance float64          `json:"balance"`
+	}
 }
 
 type ExtendedRepository[T any, ID comparable] interface {

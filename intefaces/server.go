@@ -1,3 +1,17 @@
+// @title           Financial App API
+// @version         1.0
+// @description     This is a financial application server.
+// @termsOfService  http://swagger.io/terms/
+// @contact.name   API Support
+// @contact.url    http://www.yourdomain.com/support
+// @contact.email  support@yourdomain.com
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+// @host      localhost:8085
+// @BasePath  /api
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
 package intefaces
 
 import (
@@ -15,13 +29,15 @@ import (
 type Server struct {
 	router         *gin.Engine
 	userUseCase    ports.UserUseCase
+	walletUseCase  ports.WalletUseCase
 	apiControllers []controllers.Controller
 	authMiddleware *middleware.AuthMiddleware
 }
 
-func NewServer(userUseCase ports.UserUseCase) *Server {
+func NewServer(userUseCase ports.UserUseCase, walletUseCase ports.WalletUseCase) *Server {
 	server := &Server{
 		userUseCase:    userUseCase,
+		walletUseCase:  walletUseCase,
 		authMiddleware: middleware.NewAuthMiddleware(),
 	}
 	server.setupControllers()
@@ -33,6 +49,7 @@ func (s *Server) setupControllers() {
 	// Register all controllers here
 	s.apiControllers = []controllers.Controller{
 		controllers.NewAccountController(s.userUseCase, s.authMiddleware),
+		controllers.NewWalletController(s.walletUseCase, s.authMiddleware),
 		// Add more controllers here as needed
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/supabase-community/supabase-go"
 )
 
-const walletTable = "users"
+const walletTable = "wallets"
 
 type SupaBaseWalletRepository struct {
 	client *supabase.Client
@@ -120,14 +120,14 @@ func (r *SupaBaseWalletRepository) GetUserWallet(id int, email string) (*ports.U
 
 // Query executes a custom query and returns the result as interface{}.
 // This method provides a flexible way to execute custom queries that don't fit the standard CRUD operations.
-func (r *SupaBaseWalletRepository) Query(query string, args ...interface{}) (interface{}, error) {
+func (r *SupaBaseWalletRepository) Query(fields string, args ports.QueryOptions) (interface{}, error) {
 	// Implementación específica para Supabase
 	// Por ahora, devolvemos un error indicando que no está implementado
 	// Deberías implementar la lógica específica para tu base de datos Supabase aquí
 	// return nil, errors.New("not implemented")
-	var wallet db.Wallet
+	var wallet []db.Wallet
 
-	_, err := r.client.From(walletTable).Select(" w.id, w.name, w.type, w.balance, user:users!inner(email)", "", false).ExecuteTo(&wallet)
+	_, err := r.client.From(walletTable).Select(fields, "", false).ExecuteTo(&wallet)
 	if err != nil {
 		return nil, err
 	}

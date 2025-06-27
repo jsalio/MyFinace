@@ -68,8 +68,11 @@ func main() {
 	accountRepository := SupaBaseUserRepository.NewSupaBaseUserRepository(client)
 	accountUseCase := UserCases.NewAccountUseCase(accountRepository)
 
+	walletRepository := SupaBaseUserRepository.NewSupaBaseWalletRepository(client)
+	walletUseCase := UserCases.NewWalletUseCase(walletRepository)
+
 	// Crear e iniciar el servidor web
-	server := intefaces.NewServer(accountUseCase)
+	server := intefaces.NewServer(accountUseCase, walletUseCase)
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

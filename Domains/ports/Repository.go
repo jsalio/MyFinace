@@ -1,5 +1,27 @@
 package ports
 
+type QueryOptions struct {
+	Filters []Filter  // Filtros a aplicar
+	OrderBy []OrderBy // Ordenamiento
+	Limit   *int      // Límite de resultados
+	Offset  *int      // Offset para paginación
+	Count   *string   // Tipo de conteo ("exact", "planned", "estimated")
+}
+
+// Filter representa un filtro individual
+type Filter struct {
+	Field    string      // Campo a filtrar
+	Operator string      // Operador (eq, neq, gt, gte, lt, lte, like, ilike, in, etc.)
+	Value    interface{} // Valor del filtro
+}
+
+// OrderBy representa una cláusula de ordenamiento
+type OrderBy struct {
+	Field      string // Campo por el cual ordenar
+	Ascending  bool   // true para ASC, false para DESC
+	NullsFirst *bool  // nil para default, true/false para NULLS FIRST/LAST
+}
+
 // Repository is a generic interface that defines the standard CRUD operations for domain entities.
 // It uses Go generics to work with any entity type (T) and any comparable ID type (ID).
 //
@@ -84,7 +106,7 @@ type Repository[T any, ID comparable] interface {
 	//   - error: Error if the operation fails
 	//
 	// Note: The query format and arguments are implementation-specific
-	Query(query string, args ...interface{}) (any, error)
+	Query(fields string, args QueryOptions) (any, error)
 
 	// FindByField retrieves the first entity that matches the given field-value pair.
 	// This method is useful for looking up entities by non-primary key fields.

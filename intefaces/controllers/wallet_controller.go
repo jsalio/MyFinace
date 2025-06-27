@@ -1,3 +1,18 @@
+// @title           Financial App API
+// @version         1.0
+// @description     This is a financial application server.
+// @termsOfService  http://swagger.io/terms/
+// @contact.name   API Support
+// @contact.url    http://www.yourdomain.com/support
+// @contact.email  support@yourdomain.com
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+// @host      localhost:8085
+// @BasePath  /api
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
+
 package controllers
 
 import (
@@ -9,6 +24,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// WalletController handles wallet related operations
+// @Summary Wallet management
+// @Description Provides endpoints for managing user wallets
 type WalletController struct {
 	*BaseController
 	wallet          ports.WalletUseCase
@@ -24,7 +42,7 @@ func NewWalletController(walletUseCase ports.WalletUseCase, auth *middleware.Aut
 }
 
 func (wc *WalletController) RegisterRoutes(router *gin.RouterGroup) {
-	wc.authMiddlerware.Config.AddPublicRoute("GET", "api/wallet/:email")
+	wc.authMiddlerware.Config.AddPublicRoute("GET", "/api/wallet/:email")
 	public := router.Group("/wallet")
 	{
 		public.GET(":email", wc.getUserWallets)
@@ -39,14 +57,26 @@ func (wc *WalletController) RegisterRoutes(router *gin.RouterGroup) {
 	}
 }
 
-// getUserWallets handles GET /wallets - Get all wallets for the authenticated user
+// getUserWallets godoc
+// @Summary Get user wallets
+// @Description Get all wallets for the authenticated user
+// @Tags wallets
+// @Accept  json
+// @Produce  json
+// @Param email path string true "User email"
+// @Security Bearer
+// @Success 200 {object} ports.UserWallet
+// @Failure 400 {object} dtos.ErrorResponse
+// @Failure 401 {object} dtos.ErrorResponse
+// @Router /wallet/{email} [get]
+// @Router /wallet [get]
 func (wc *WalletController) getUserWallets(c *gin.Context) {
-	email, exists := c.Get("email")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+	email := c.Param("email")
+	if email == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Email is empty"})
 		return
 	}
-	wallet, err := wc.wallet.GetUserWallet(0, email.(string))
+	wallet, err := wc.wallet.GetUserWallet(0, email)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -54,7 +84,18 @@ func (wc *WalletController) getUserWallets(c *gin.Context) {
 	c.JSON(http.StatusCreated, wallet)
 }
 
-// createWallet handles POST /wallet - Create a new wallet
+// createWallet godoc
+// @Summary Create a new wallet
+// @Description Create a new wallet for the authenticated user
+// @Tags wallets
+// @Accept  json
+// @Produce  json
+// @Security Bearer
+// @Param wallet body dtos.CreateWalletRequest true "Wallet creation data"
+// @Success 201 {object} db.Wallet
+// @Failure 400 {object} dtos.ErrorResponse
+// @Failure 401 {object} dtos.ErrorResponse
+// @Router /wallet [post]
 func (wc *WalletController) createWallet(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -80,7 +121,19 @@ func (wc *WalletController) createWallet(c *gin.Context) {
 	c.JSON(http.StatusCreated, wallet)
 }
 
-// updateWallet handles PUT /wallet/:id - Update a wallet
+// updateWallet godoc
+// @Summary Update a wallet
+// @Description Update an existing wallet's information
+// @Tags wallets
+// @Accept  json
+// @Produce  json
+// @Security Bearer
+// @Param id path int true "Wallet ID"
+// @Param wallet body dtos.UpdateWalletRequest true "Wallet update data"
+// @Success 200 {object} db.Wallet
+// @Failure 400 {object} dtos.ErrorResponse
+// @Failure 401 {object} dtos.ErrorResponse
+// @Router /wallet/{id} [put]
 func (wc *WalletController) updateWallet(c *gin.Context) {
 	var request dtos.UpdateWalletRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -96,7 +149,19 @@ func (wc *WalletController) updateWallet(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedWallet)
 }
 
-// deleteWallet handles DELETE /wallet/:id - Delete a wallet
+// deleteWallet godoc
+// @Summary Delete a wallet
+// @Description Delete a wallet by ID
+// @Tags wallets
+// @Accept  json
+// @Produce  json
+// @Security Bearer
+// @Param id path int true "Wallet ID"
+// @Success 204 "No Content"
+// @Failure 400 {object} dtos.ErrorResponse
+// @Failure 401 {object} dtos.ErrorResponse
+// @Failure 500 {object} dtos.ErrorResponse
+// @Router /wallet/{id} [delete]
 func (wc *WalletController) deleteWallet(c *gin.Context) {
 	var request dtos.DeleteWalletRequest
 
