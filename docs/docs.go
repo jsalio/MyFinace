@@ -161,6 +161,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth": {
+            "post": {
+                "description": "Authenticates a user with email/username and password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Authenticate user",
+                "parameters": [
+                    {
+                        "description": "Login credentials",
+                        "name": "auth",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.AuthRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Authentication successful",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/wallet": {
             "get": {
                 "security": [
@@ -484,6 +536,20 @@ const docTemplate = `{
                 "userId": {
                     "description": "UserID is the foreign key that references the user who owns this wallet.\nThis field is required and must reference a valid user ID.",
                     "type": "integer"
+                }
+            }
+        },
+        "dtos.AuthRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "nick": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
                 }
             }
         },

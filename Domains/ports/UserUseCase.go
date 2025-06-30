@@ -2,6 +2,7 @@ package ports
 
 import (
 	"Financial/Models/db"
+	"Financial/Models/dtos"
 )
 
 // UserUseCase defines the business logic operations for user account management.
@@ -37,4 +38,6 @@ type UserUseCase interface {
 	//   - *models.User: The updated user object
 	//   - error:       Error if update fails (e.g., invalid data, user not found)
 	UpdateAccount(user db.UpdateAccountRequest) (*db.User, error)
+
+	Login(auth dtos.AuthRequest) (*string, error)
 }

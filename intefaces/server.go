@@ -50,6 +50,7 @@ func (s *Server) setupControllers() {
 	s.apiControllers = []controllers.Controller{
 		controllers.NewAccountController(s.userUseCase, s.authMiddleware),
 		controllers.NewWalletController(s.walletUseCase, s.authMiddleware),
+		controllers.NewAuthController(s.userUseCase, s.authMiddleware),
 		// Add more controllers here as needed
 	}
 }
@@ -79,11 +80,11 @@ func (s *Server) setupRouter() {
 	api := s.router.Group("/api")
 	{
 		// Rutas públicas
-		authGroup := api.Group("/auth")
-		{
-			authGroup.POST("/login", func(ctx *gin.Context) {})
-			authGroup.POST("/register", func(ctx *gin.Context) {})
-		}
+		// authGroup := api.Group("/auth")
+		// {
+		// 	authGroup.POST("/login", func(ctx *gin.Context) {})
+		// 	authGroup.POST("/register", func(ctx *gin.Context) {})
+		// }
 
 		// Rutas protegidas
 		api.Use(s.authMiddleware.AuthMiddleware())

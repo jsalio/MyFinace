@@ -62,6 +62,15 @@ definitions:
           This field is required and must reference a valid user ID.
         type: integer
     type: object
+  dtos.AuthRequest:
+    properties:
+      email:
+        type: string
+      nick:
+        type: string
+      password:
+        type: string
+    type: object
   dtos.CreateAccountRequest:
     properties:
       email:
@@ -297,6 +306,40 @@ paths:
       summary: Actualizar usuario
       tags:
       - Account
+  /auth:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user with email/username and password
+      parameters:
+      - description: Login credentials
+        in: body
+        name: auth
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.AuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Authentication successful
+          schema:
+            type: string
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "401":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      summary: Authenticate user
+      tags:
+      - auth
   /wallet:
     get:
       consumes:
