@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/supabase-community/postgrest-go"
 	"github.com/supabase-community/supabase-go"
 )
 
@@ -129,4 +130,61 @@ func (r *SupaBaseUserRepository) Update(todo *db.User) (*db.User, error) {
 		return nil, err
 	}
 	return &result[0], nil
+}
+
+// Query executes a custom query and returns the result as interface{}.
+// This method provides a flexible way to execute custom queries that don't fit the standard CRUD operations.
+func (r *SupaBaseUserRepository) Query(fields string, args ports.QueryOptions) (interface{}, error) {
+	var user []db.User
+
+	query := r.client.From(table_string)
+	queryUnfilter := query.Select(fields, "", false)
+
+	for _, filter := range args.Filters {
+		if filter.Operator == "eq" {
+			queryUnfilter.Eq(filter.Field, filter.Value.(string))
+		}
+		if filter.Operator == "neq" {
+			queryUnfilter.Neq(filter.Field, filter.Value.(string))
+		}
+		if filter.Operator == "gt" {
+			queryUnfilter.Gt(filter.Field, filter.Value.(string))
+		}
+		if filter.Operator == "gte" {
+			queryUnfilter.Gte(filter.Field, filter.Value.(string))
+		}
+		if filter.Operator == "lt" {
+			queryUnfilter.Lt(filter.Field, filter.Value.(string))
+		}
+		if filter.Operator == "lte" {
+			queryUnfilter.Lte(filter.Field, filter.Value.(string))
+		}
+		if filter.Operator == "like" {
+			queryUnfilter.Like(filter.Field, filter.Value.(string))
+		}
+		if filter.Operator == "ilike" {
+			queryUnfilter.Ilike(filter.Field, filter.Value.(string))
+		}
+		if filter.Operator == "is" {
+			queryUnfilter.Is(filter.Field, filter.Value.(string))
+		}
+		if filter.Operator == "in" {
+			queryUnfilter.In(filter.Field, []string{filter.Value.(string)})
+		}
+	}
+
+	for _, order := range args.OrderBy {
+		queryUnfilter.Order(order.Field, &postgrest.OrderOpts{
+			Ascending:  order.Ascending,
+			NullsFirst: *order.NullsFirst,
+		})
+	}
+
+	_, err := queryUnfilter.ExecuteTo(&user)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }

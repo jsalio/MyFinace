@@ -5,6 +5,7 @@ import (
 	"Financial/Models/db"
 	"Financial/Models/dtos"
 	"Financial/infrastructure"
+	"Financial/types"
 	"errors"
 	"fmt"
 	"strings"
@@ -134,4 +135,55 @@ func (uc *WalletUseCase) DeleteWallet(walletID int) error {
 	// before allowing deletion
 
 	return uc.repository.Delete(walletID)
+}
+
+func (uc *WalletUseCase) GetUserWallet(id int, email string) (*ports.UserWallet, error) {
+	data, err := uc.repository.Query("id,name,type,balance,user:users!inner(email)", ports.QueryOptions{
+		Filters: []ports.Filter{
+			ports.Filter{
+				Field:    "users.email",
+				Operator: "eq",
+				Value:    email,
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var result ports.UserWallet
+
+	// Type assert the result to *ports.UserWallet
+	wallet, ok := data.([]db.Wallet)
+	if !ok {
+		return nil, errors.New("unexpected type returned from repository")
+	}
+
+	result = ports.UserWallet{
+		Email: email,
+	}
+
+	if len(wallet) == 0 {
+		result.Wallets = []struct {
+			Name    string           `json:"name"`
+			Type    types.WalletType `json:"type"`
+			Balance float64          `json:"balance"`
+		}{}
+		return &result, nil
+	}
+
+	result.Email = wallet[0].User.Email
+	for _, w := range wallet {
+		result.Wallets = append(result.Wallets, struct {
+			Name    string           "json:\"name\""
+			Type    types.WalletType "json:\"type\""
+			Balance float64          "json:\"balance\""
+		}{
+			Name:    w.Name,
+			Type:    w.Type,
+			Balance: w.Balance,
+		})
+	}
+
+	return &result, nil
 }

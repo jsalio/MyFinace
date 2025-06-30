@@ -41,4 +41,6 @@ type WalletUseCase interface {
 	// Returns:
 	//   - error: Error if deletion fails (e.g., wallet not found)
 	DeleteWallet(walletID int) error
+
+	GetUserWallet(id int, email string) (*UserWallet, error)
 }

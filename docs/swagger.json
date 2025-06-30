@@ -1,8 +1,22 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "This is a financial application server.",
+        "title": "Financial App API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.yourdomain.com/support",
+            "email": "support@yourdomain.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
     },
+    "host": "localhost:8085",
+    "basePath": "/api",
     "paths": {
         "/account": {
             "put": {
@@ -140,9 +154,399 @@
                     }
                 }
             }
+        },
+        "/auth": {
+            "post": {
+                "description": "Authenticates a user with email/username and password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Authenticate user",
+                "parameters": [
+                    {
+                        "description": "Login credentials",
+                        "name": "auth",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.AuthRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Authentication successful",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/wallet": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get all wallets for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "Get user wallets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ports.UserWallet"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create a new wallet for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "Create a new wallet",
+                "parameters": [
+                    {
+                        "description": "Wallet creation data",
+                        "name": "wallet",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.CreateWalletRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/db.Wallet"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/wallet/{email}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get all wallets for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "Get user wallets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User email",
+                        "name": "email",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ports.UserWallet"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/wallet/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update an existing wallet's information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "Update a wallet",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Wallet ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Wallet update data",
+                        "name": "wallet",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.UpdateWalletRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/db.Wallet"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Delete a wallet by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "Delete a wallet",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Wallet ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "db.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "CreatedAt is the timestamp when the user account was created",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "Email is the user's email address (required, unique)",
+                    "type": "string"
+                },
+                "first_name": {
+                    "description": "FirstName is the user's first name (required)",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID is the unique identifier for the user",
+                    "type": "integer"
+                },
+                "last_name": {
+                    "description": "Lastname is the user's last name (required)",
+                    "type": "string"
+                },
+                "nick_name": {
+                    "description": "Nickname is the user's chosen display name (required, unique)",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Password is the hashed password for the user (never stored in plain text)",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status represents the current state of the user's account",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.AccountStatus"
+                        }
+                    ]
+                }
+            }
+        },
+        "db.Wallet": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "description": "Balance is the current monetary amount available in the wallet.\nIt's represented as a float64 to support decimal values.",
+                    "type": "number"
+                },
+                "id": {
+                    "description": "ID is the unique identifier for the user",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "Name is the user-defined identifier for the wallet.\nIt must be unique per user.",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type represents the kind of wallet (e.g., checking, savings, credit).\nIt uses the WalletType type defined in the types package.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.WalletType"
+                        }
+                    ]
+                },
+                "user": {
+                    "description": "User is the navigation property to access the user who owns this wallet.\nThis field should be populated manually when needed.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/db.User"
+                        }
+                    ]
+                },
+                "userId": {
+                    "description": "UserID is the foreign key that references the user who owns this wallet.\nThis field is required and must reference a valid user ID.",
+                    "type": "integer"
+                }
+            }
+        },
+        "dtos.AuthRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "nick": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
         "dtos.CreateAccountRequest": {
             "type": "object",
             "required": [
@@ -178,6 +582,23 @@
                 },
                 "nick": {
                     "type": "string"
+                }
+            }
+        },
+        "dtos.CreateWalletRequest": {
+            "type": "object",
+            "properties": {
+                "accoundId": {
+                    "type": "integer"
+                },
+                "balance": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/types.WalletType"
                 }
             }
         },
@@ -242,6 +663,90 @@
                     "type": "integer"
                 }
             }
+        },
+        "dtos.UpdateWalletRequest": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/types.WalletType"
+                }
+            }
+        },
+        "ports.UserWallet": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "Email is the user's email address (required, unique)",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID is the unique identifier for the user",
+                    "type": "integer"
+                },
+                "nick_name": {
+                    "description": "Nickname is the user's chosen display name (required, unique)",
+                    "type": "string"
+                },
+                "wallets": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "balance": {
+                                "type": "number"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.WalletType"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "types.AccountStatus": {
+            "type": "string",
+            "enum": [
+                "active",
+                "inactive",
+                "pending",
+                "suspended"
+            ],
+            "x-enum-varnames": [
+                "Active",
+                "Inactive",
+                "Pending",
+                "Suspend"
+            ]
+        },
+        "types.WalletType": {
+            "type": "string",
+            "enum": [
+                "Debit",
+                "Credit"
+            ],
+            "x-enum-varnames": [
+                "Debit",
+                "Credit"
+            ]
+        }
+    },
+    "securityDefinitions": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }

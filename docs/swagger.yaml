@@ -1,4 +1,76 @@
+basePath: /api
 definitions:
+  db.User:
+    properties:
+      created_at:
+        description: CreatedAt is the timestamp when the user account was created
+        type: string
+      email:
+        description: Email is the user's email address (required, unique)
+        type: string
+      first_name:
+        description: FirstName is the user's first name (required)
+        type: string
+      id:
+        description: ID is the unique identifier for the user
+        type: integer
+      last_name:
+        description: Lastname is the user's last name (required)
+        type: string
+      nick_name:
+        description: Nickname is the user's chosen display name (required, unique)
+        type: string
+      password:
+        description: Password is the hashed password for the user (never stored in
+          plain text)
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/types.AccountStatus'
+        description: Status represents the current state of the user's account
+    type: object
+  db.Wallet:
+    properties:
+      balance:
+        description: |-
+          Balance is the current monetary amount available in the wallet.
+          It's represented as a float64 to support decimal values.
+        type: number
+      id:
+        description: ID is the unique identifier for the user
+        type: integer
+      name:
+        description: |-
+          Name is the user-defined identifier for the wallet.
+          It must be unique per user.
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/types.WalletType'
+        description: |-
+          Type represents the kind of wallet (e.g., checking, savings, credit).
+          It uses the WalletType type defined in the types package.
+      user:
+        allOf:
+        - $ref: '#/definitions/db.User'
+        description: |-
+          User is the navigation property to access the user who owns this wallet.
+          This field should be populated manually when needed.
+      userId:
+        description: |-
+          UserID is the foreign key that references the user who owns this wallet.
+          This field is required and must reference a valid user ID.
+        type: integer
+    type: object
+  dtos.AuthRequest:
+    properties:
+      email:
+        type: string
+      nick:
+        type: string
+      password:
+        type: string
+    type: object
   dtos.CreateAccountRequest:
     properties:
       email:
@@ -24,6 +96,17 @@ definitions:
     - email
     - id
     - nick
+    type: object
+  dtos.CreateWalletRequest:
+    properties:
+      accoundId:
+        type: integer
+      balance:
+        type: number
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/types.WalletType'
     type: object
   dtos.DeleteAccountRequest:
     properties:
@@ -65,8 +148,73 @@ definitions:
     required:
     - id
     type: object
+  dtos.UpdateWalletRequest:
+    properties:
+      balance:
+        type: number
+      id:
+        type: integer
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/types.WalletType'
+    type: object
+  ports.UserWallet:
+    properties:
+      email:
+        description: Email is the user's email address (required, unique)
+        type: string
+      id:
+        description: ID is the unique identifier for the user
+        type: integer
+      nick_name:
+        description: Nickname is the user's chosen display name (required, unique)
+        type: string
+      wallets:
+        items:
+          properties:
+            balance:
+              type: number
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.WalletType'
+          type: object
+        type: array
+    type: object
+  types.AccountStatus:
+    enum:
+    - active
+    - inactive
+    - pending
+    - suspended
+    type: string
+    x-enum-varnames:
+    - Active
+    - Inactive
+    - Pending
+    - Suspend
+  types.WalletType:
+    enum:
+    - Debit
+    - Credit
+    type: string
+    x-enum-varnames:
+    - Debit
+    - Credit
+host: localhost:8085
 info:
-  contact: {}
+  contact:
+    email: support@yourdomain.com
+    name: API Support
+    url: http://www.yourdomain.com/support
+  description: This is a financial application server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Financial App API
+  version: "1.0"
 paths:
   /account:
     delete:
@@ -158,4 +306,199 @@ paths:
       summary: Actualizar usuario
       tags:
       - Account
+  /auth:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user with email/username and password
+      parameters:
+      - description: Login credentials
+        in: body
+        name: auth
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.AuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Authentication successful
+          schema:
+            type: string
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "401":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      summary: Authenticate user
+      tags:
+      - auth
+  /wallet:
+    get:
+      consumes:
+      - application/json
+      description: Get all wallets for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ports.UserWallet'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get user wallets
+      tags:
+      - wallets
+    post:
+      consumes:
+      - application/json
+      description: Create a new wallet for the authenticated user
+      parameters:
+      - description: Wallet creation data
+        in: body
+        name: wallet
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreateWalletRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/db.Wallet'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Create a new wallet
+      tags:
+      - wallets
+  /wallet/{email}:
+    get:
+      consumes:
+      - application/json
+      description: Get all wallets for the authenticated user
+      parameters:
+      - description: User email
+        in: path
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ports.UserWallet'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get user wallets
+      tags:
+      - wallets
+  /wallet/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a wallet by ID
+      parameters:
+      - description: Wallet ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Delete a wallet
+      tags:
+      - wallets
+    put:
+      consumes:
+      - application/json
+      description: Update an existing wallet's information
+      parameters:
+      - description: Wallet ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Wallet update data
+        in: body
+        name: wallet
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UpdateWalletRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.Wallet'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Update a wallet
+      tags:
+      - wallets
+securityDefinitions:
+  Bearer:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

@@ -1,6 +1,7 @@
 package mocks
 
 import (
+	"Financial/Domains/ports"
 	"errors"
 	"reflect"
 	"sync"
@@ -245,4 +246,25 @@ func (m *MockRepository[T, ID]) FindByField(field string, value any) (*T, error)
 		}
 	}
 	return nil, errors.New("entity not found")
+}
+
+// Query executes a custom query and returns the result as interface{}.
+// This method provides a flexible way to execute custom queries that don't fit the standard CRUD operations.
+func (m *MockRepository[T, ID]) Query(query string, args ports.QueryOptions) (interface{}, error) {
+	m.recordCall("Query", append([]interface{}{query}, args)...)
+
+	// Check for predefined response
+	m.mu.RLock()
+	resp, exists := m.responses["Query"]
+	m.mu.RUnlock()
+
+	if exists {
+		if resp.err != nil {
+			return nil, resp.err
+		}
+		return resp.value, nil
+	}
+
+	// Default behavior: return nil
+	return nil, nil
 }

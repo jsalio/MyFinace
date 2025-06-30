@@ -3,6 +3,7 @@ package usecases
 import (
 	"Financial/Domains/ports"
 	"Financial/Models/db"
+	"Financial/Models/dtos"
 	"Financial/infrastructure"
 	"Financial/types"
 	"errors"
@@ -137,4 +138,42 @@ func (uc *AccountUseCase) UpdateAccount(req db.UpdateAccountRequest) (*db.User, 
 	}
 
 	return uc.repository.Update(user)
+}
+
+func (uc *AccountUseCase) Login(auth dtos.AuthRequest) (*string, error) {
+
+	if auth.Email == "" && auth.Nickname == "" {
+		return nil, errors.New("nick or email can't be empty")
+	}
+
+	if auth.Passwd == "" {
+		return nil, errors.New("password is empty")
+	}
+
+	data, err := uc.repository.Query("email, password", ports.QueryOptions{
+		Filters: []ports.Filter{
+			ports.Filter{
+				Field:    "email",
+				Operator: "eq",
+				Value:    auth.Email,
+			},
+			ports.Filter{
+				Field:    "password",
+				Operator: "eq",
+				Value:    auth.Passwd,
+			},
+		},
+	})
+
+	if err != nil {
+		return nil, errors.New("account not found")
+	}
+
+	user, ok := data.([]db.User)
+
+	if !ok {
+		return nil, errors.New("account not found")
+	}
+
+	return &user[0].Email, nil
 }

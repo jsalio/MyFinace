@@ -1,3 +1,17 @@
+// @title           Financial App API
+// @version         1.0
+// @description     This is a financial application server.
+// @termsOfService  http://swagger.io/terms/
+// @contact.name   API Support
+// @contact.url    http://www.yourdomain.com/support
+// @contact.email  support@yourdomain.com
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+// @host      localhost:8085
+// @BasePath  /api
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
 package controllers
 
 import (
@@ -9,17 +23,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
-// @title Financial App API
-// 	@version 1.0
-// 	@description This is a financial application server.
-// 	@termsOfService http://swagger.io/terms/
-// 	@contact.name API Support
-// 	@contact.email support@financialapp.com
-// 	@license.name Apache 2.0
-// 	@license.url http://www.apache.org/licenses/LICENSE-2.0.html
-// 	@host localhost:8080
-// 	@BasePath /api
 
 // AccountController handles HTTP requests related to account operations
 //
