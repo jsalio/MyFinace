@@ -13,8 +13,6 @@ import (
 	"time"
 )
 
-var ErrNotFound = errors.New("record not found")
-
 type AccountUseCase struct {
 	repository ports.Repository[db.User, int]
 }
@@ -46,14 +44,14 @@ func (uc *AccountUseCase) CreateAccount(nick string, email string, password stri
 	_, err := uc.repository.FindByField("email", email)
 	if err == nil {
 		return nil, errors.New("email already exists")
-	} else if err != ErrNotFound {
+	} else if err != types.ErrNotFound {
 		return nil, fmt.Errorf("error checking email existence: %w", err)
 	}
 
 	_, err_nick := uc.repository.FindByField("nick_name", nick)
 	if err_nick == nil {
 		return nil, errors.New("nickname already exists")
-	} else if err != ErrNotFound {
+	} else if err != types.ErrNotFound {
 		return nil, fmt.Errorf("error checking nick existence: %w", err)
 	}
 

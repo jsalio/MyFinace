@@ -4,14 +4,14 @@ import (
 	"errors"
 	"testing"
 
-	"Financial/Domains/ports"
-	"Financial/Models/db"
-	"Financial/Models/dtos"
-	usecases "Financial/UseCases"
+	"Financial/Core/Models/db"
+	dtos "Financial/Core/Models/dtos/Request"
+	usecases "Financial/Core/UseCases"
+	"Financial/Core/ports"
 	"Financial/infrastructure"
 	mocks "Financial/test"
 
-	"Financial/types"
+	"Financial/Core/types"
 
 	"github.com/stretchr/testify/assert"
 )

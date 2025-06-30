@@ -1,8 +1,8 @@
 package infrastructure
 
 import (
-	"Financial/Domains/ports"
-	"Financial/Models/db"
+	"Financial/Core/Models/db"
+	contracts "Financial/Core/ports"
 	"errors"
 	"fmt"
 	"strconv"
@@ -18,7 +18,7 @@ type SupaBaseUserRepository struct {
 	client *supabase.Client
 }
 
-func NewSupaBaseUserRepository(client *supabase.Client) ports.Repository[db.User, int] {
+func NewSupaBaseUserRepository(client *supabase.Client) contracts.Repository[db.User, int] {
 	return &SupaBaseUserRepository{client: client}
 }
 
@@ -134,7 +134,7 @@ func (r *SupaBaseUserRepository) Update(todo *db.User) (*db.User, error) {
 
 // Query executes a custom query and returns the result as interface{}.
 // This method provides a flexible way to execute custom queries that don't fit the standard CRUD operations.
-func (r *SupaBaseUserRepository) Query(fields string, args ports.QueryOptions) (interface{}, error) {
+func (r *SupaBaseUserRepository) Query(fields string, args contracts.QueryOptions) (interface{}, error) {
 	var user []db.User
 
 	query := r.client.From(table_string)

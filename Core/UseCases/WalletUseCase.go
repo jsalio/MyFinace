@@ -69,7 +69,7 @@ func (uc *WalletUseCase) UpdateWallet(request dtos.UpdateWalletRequest) (*db.Wal
 	// Get existing wallet
 	existingWallet, err := uc.repository.FindByField("id", request.WalletID)
 	if err != nil {
-		if err == ErrNotFound {
+		if err == types.ErrNotFound {
 			return nil, errors.New("wallet not found")
 		}
 		return nil, fmt.Errorf("error fetching wallet: %w", err)
@@ -124,7 +124,7 @@ func (uc *WalletUseCase) DeleteWallet(walletID int) error {
 	// Check if wallet exists
 	_, err := uc.repository.GetByID(walletID)
 	if err != nil {
-		if err == ErrNotFound {
+		if err == types.ErrNotFound {
 			return errors.New("wallet not found")
 		}
 		return fmt.Errorf("error fetching wallet: %w", err)

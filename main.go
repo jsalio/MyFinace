@@ -15,14 +15,16 @@
 package main
 
 import (
-	"Financial/Domains/ports"
+	"Financial/Core/ports"
+	"Financial/intefaces"
 	"fmt"
 	"log"
 	"os"
 
-	UserCases "Financial/UseCases"
+	UserCases "Financial/Core/UseCases"
 	SupaBaseUserRepository "Financial/infrastructure"
-	"Financial/intefaces"
+
+	// "Financial/intefaces"
 
 	"github.com/joho/godotenv"
 	"github.com/supabase-community/supabase-go"

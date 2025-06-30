@@ -15,11 +15,12 @@
 package controllers
 
 import (
-	"Financial/Domains/ports"
-	"Financial/Models/db"
-	"Financial/Models/dtos"
+	"Financial/Core/Models/db"
+	request "Financial/Core/Models/dtos/Request"
+	response "Financial/Core/Models/dtos/Response"
+	contracts "Financial/Core/ports"
+	types "Financial/Core/types"
 	"Financial/intefaces/middleware"
-	"Financial/types"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,11 +34,11 @@ import (
 //	@Consume json
 type AccountController struct {
 	*BaseController
-	userUseCase    ports.UserUseCase
+	userUseCase    contracts.UserUseCase
 	authMiddleware *middleware.AuthMiddleware
 }
 
-func NewAccountController(userUseCase ports.UserUseCase, authMiddlerware *middleware.AuthMiddleware) *AccountController {
+func NewAccountController(userUseCase contracts.UserUseCase, authMiddlerware *middleware.AuthMiddleware) *AccountController {
 	return &AccountController{
 		BaseController: NewBaseController("/account"),
 		userUseCase:    userUseCase,
@@ -73,10 +74,10 @@ func (ac *AccountController) RegisterRoutes(router *gin.RouterGroup) {
 // @Failure 500 {object} dtos.ErrorResponse "Error interno del servidor"
 // @Router /account [post]
 func (ac *AccountController) CreateUserAccount(c *gin.Context) {
-	var request dtos.CreateAccountRequest
+	var request request.CreateAccountRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		var errorRes = dtos.ErrorResponse{
+		var errorRes = response.ErrorResponse{
 			Error: "Solicitud inválida",
 		}
 		c.JSON(400, errorRes)
@@ -85,14 +86,14 @@ func (ac *AccountController) CreateUserAccount(c *gin.Context) {
 
 	account, err := ac.userUseCase.CreateAccount(request.Nick, request.Email, request.Password)
 	if err != nil {
-		var errorRes = dtos.ErrorResponse{
+		var errorRes = response.ErrorResponse{
 			Error: err.Error(),
 		}
 		c.JSON(500, errorRes)
 		return
 	}
 
-	var response = dtos.CreateAccountResponse{
+	var response = response.CreateAccountResponse{
 		ID:    account.ID,
 		Nick:  account.Nickname,
 		Email: account.Nickname,
@@ -113,10 +114,10 @@ func (ac *AccountController) CreateUserAccount(c *gin.Context) {
 // @Failure 500 {object} dtos.ErrorResponse "Error interno del servidor"
 // @Router /account [put]
 func (ac *AccountController) UpdateUserAccount(c *gin.Context) {
-	var request dtos.UpdateAccountRequest
+	var request request.UpdateAccountRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		var errorRes = dtos.ErrorResponse{
+		var errorRes = response.ErrorResponse{
 			Error: "Solicitud inválida",
 		}
 		c.JSON(400, errorRes)
@@ -133,13 +134,13 @@ func (ac *AccountController) UpdateUserAccount(c *gin.Context) {
 	})
 
 	if err != nil {
-		var errorRes = dtos.ErrorResponse{
+		var errorRes = response.ErrorResponse{
 			Error: err.Error(),
 		}
 		c.JSON(500, errorRes)
 		return
 	}
-	var response = dtos.UpdateAccountResponse{
+	var response = response.UpdateAccountResponse{
 		ID:    account.ID,
 		Email: account.Email,
 	}
@@ -158,10 +159,10 @@ func (ac *AccountController) UpdateUserAccount(c *gin.Context) {
 // @Failure 500 {object} dtos.ErrorResponse "Error interno del servidor"
 // @Router /account [delete]
 func (ac *AccountController) DeleteUserAccount(c *gin.Context) {
-	var request dtos.DeleteAccountRequest
+	var request request.DeleteAccountRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		var errorRes = dtos.ErrorResponse{
+		var errorRes = response.ErrorResponse{
 			Error: "Solicitud inválida",
 		}
 		c.JSON(400, errorRes)
@@ -170,7 +171,7 @@ func (ac *AccountController) DeleteUserAccount(c *gin.Context) {
 
 	err := ac.userUseCase.DestroyAccount(request.Email)
 	if err != nil {
-		var errorRes = dtos.ErrorResponse{
+		var errorRes = response.ErrorResponse{
 			Error: err.Error(),
 		}
 		c.JSON(500, errorRes)

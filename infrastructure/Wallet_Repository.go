@@ -1,8 +1,8 @@
 package infrastructure
 
 import (
-	"Financial/Domains/ports"
-	"Financial/Models/db"
+	"Financial/Core/Models/db"
+	"Financial/Core/ports"
 	"fmt"
 	"strconv"
 

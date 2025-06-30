@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	models "Financial/Models"
+	models "Financial/Core/Models"
 	"fmt"
 	"net/http"
 	"os"

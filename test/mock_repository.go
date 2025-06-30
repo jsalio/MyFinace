@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	"Financial/Domains/ports"
+	"Financial/Core/ports"
 	"errors"
 	"reflect"
 	"sync"
