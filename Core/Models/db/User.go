@@ -1,7 +1,7 @@
 package db
 
 import (
-	"Financial/types"
+	"Financial/Core/types"
 	"encoding/json"
 	"fmt"
 	"time"

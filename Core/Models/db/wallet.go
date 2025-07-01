@@ -3,7 +3,7 @@
 package db
 
 import (
-	"Financial/types"
+	"Financial/Core/types"
 )
 
 // Wallet represents a user's digital wallet in the financial application.

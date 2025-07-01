@@ -1,7 +1,7 @@
 package ports
 
 import (
-	"Financial/types"
+	"Financial/Core/types"
 )
 
 type UserWallet struct {

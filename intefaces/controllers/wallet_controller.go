@@ -16,8 +16,9 @@
 package controllers
 
 import (
-	"Financial/Domains/ports"
-	"Financial/Models/dtos"
+	request "Financial/Core/Models/dtos/Request"
+	response "Financial/Core/Models/dtos/Response"
+	contracts "Financial/Core/ports"
 	"Financial/intefaces/middleware"
 	"net/http"
 
@@ -29,11 +30,11 @@ import (
 // @Description Provides endpoints for managing user wallets
 type WalletController struct {
 	*BaseController
-	wallet          ports.WalletUseCase
+	wallet          contracts.WalletUseCase
 	authMiddlerware *middleware.AuthMiddleware
 }
 
-func NewWalletController(walletUseCase ports.WalletUseCase, auth *middleware.AuthMiddleware) *WalletController {
+func NewWalletController(walletUseCase contracts.WalletUseCase, auth *middleware.AuthMiddleware) *WalletController {
 	return &WalletController{
 		BaseController:  NewBaseController("/wallet"),
 		wallet:          walletUseCase,
@@ -103,7 +104,7 @@ func (wc *WalletController) createWallet(c *gin.Context) {
 		return
 	}
 
-	var request dtos.CreateWalletRequest
+	var request request.CreateWalletRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
@@ -135,7 +136,7 @@ func (wc *WalletController) createWallet(c *gin.Context) {
 // @Failure 401 {object} dtos.ErrorResponse
 // @Router /wallet/{id} [put]
 func (wc *WalletController) updateWallet(c *gin.Context) {
-	var request dtos.UpdateWalletRequest
+	var request request.UpdateWalletRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
@@ -163,10 +164,10 @@ func (wc *WalletController) updateWallet(c *gin.Context) {
 // @Failure 500 {object} dtos.ErrorResponse
 // @Router /wallet/{id} [delete]
 func (wc *WalletController) deleteWallet(c *gin.Context) {
-	var request dtos.DeleteWalletRequest
+	var request request.DeleteWalletRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		var errorRes = dtos.ErrorResponse{
+		var errorRes = response.ErrorResponse{
 			Error: "Solicitud inválida",
 		}
 		c.JSON(400, errorRes)

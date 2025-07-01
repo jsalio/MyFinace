@@ -1,7 +1,11 @@
+//go:build !coverage
+// +build !coverage
+
 package mocks
 
 import (
-	"Financial/Domains/ports"
+	contracts "Financial/Core/ports"
+
 	"errors"
 	"reflect"
 	"sync"
@@ -250,7 +254,7 @@ func (m *MockRepository[T, ID]) FindByField(field string, value any) (*T, error)
 
 // Query executes a custom query and returns the result as interface{}.
 // This method provides a flexible way to execute custom queries that don't fit the standard CRUD operations.
-func (m *MockRepository[T, ID]) Query(query string, args ports.QueryOptions) (interface{}, error) {
+func (m *MockRepository[T, ID]) Query(query string, args contracts.QueryOptions) (interface{}, error) {
 	m.recordCall("Query", append([]interface{}{query}, args)...)
 
 	// Check for predefined response

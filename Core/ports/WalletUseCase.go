@@ -1,8 +1,8 @@
 package ports
 
 import (
-	"Financial/Models/db"
-	"Financial/Models/dtos"
+	"Financial/Core/Models/db"
+	"Financial/Core/Models/dtos/Request"
 )
 
 // WalletUseCase defines the interface for wallet-related business logic operations.

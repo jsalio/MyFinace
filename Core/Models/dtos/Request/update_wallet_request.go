@@ -1,6 +1,6 @@
 package dtos
 
-import "Financial/types"
+import "Financial/Core/types"
 
 type UpdateWalletRequest struct {
 	WalletID   int               `json:"id"`

@@ -1,8 +1,8 @@
 package ports
 
 import (
-	"Financial/Models/db"
-	"Financial/Models/dtos"
+	"Financial/Core/Models/db"
+	"Financial/Core/Models/dtos/Request"
 )
 
 // UserUseCase defines the business logic operations for user account management.

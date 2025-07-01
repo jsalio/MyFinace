@@ -15,7 +15,10 @@
 package intefaces
 
 import (
-	"Financial/Domains/ports"
+	contracts "Financial/Core/ports"
+	// "Financial/Domains/ports"
+	// "Financial/intefaces/controllers"
+	// "Financial/intefaces/controllers"
 	"Financial/intefaces/controllers"
 	"Financial/intefaces/middleware"
 
@@ -28,13 +31,13 @@ import (
 
 type Server struct {
 	router         *gin.Engine
-	userUseCase    ports.UserUseCase
-	walletUseCase  ports.WalletUseCase
+	userUseCase    contracts.UserUseCase
+	walletUseCase  contracts.WalletUseCase
 	apiControllers []controllers.Controller
 	authMiddleware *middleware.AuthMiddleware
 }
 
-func NewServer(userUseCase ports.UserUseCase, walletUseCase ports.WalletUseCase) *Server {
+func NewServer(userUseCase contracts.UserUseCase, walletUseCase contracts.WalletUseCase) *Server {
 	server := &Server{
 		userUseCase:    userUseCase,
 		walletUseCase:  walletUseCase,

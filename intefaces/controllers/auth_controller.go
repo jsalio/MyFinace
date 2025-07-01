@@ -1,8 +1,11 @@
 package controllers
 
 import (
-	"Financial/Domains/ports"
-	"Financial/Models/dtos"
+	// "Financial/Domains/ports"
+	// "Financial/Models/dtos"
+	request "Financial/Core/Models/dtos/Request"
+	response "Financial/Core/Models/dtos/Response"
+	contract "Financial/Core/ports"
 	"Financial/intefaces/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +15,7 @@ import (
 // @Description Controller for handling user authentication operations
 type AuthController struct {
 	*BaseController
-	userUseCase    ports.UserUseCase
+	userUseCase    contract.UserUseCase
 	authMiddleware *middleware.AuthMiddleware
 }
 
@@ -24,7 +27,7 @@ type AuthController struct {
 // @license.name Apache 2.0
 // @host localhost:8080
 // @BasePath /api
-func NewAuthController(userUseCase ports.UserUseCase, authMiddlerware *middleware.AuthMiddleware) *AuthController {
+func NewAuthController(userUseCase contract.UserUseCase, authMiddlerware *middleware.AuthMiddleware) *AuthController {
 	return &AuthController{
 		BaseController: NewBaseController("/auth"),
 		userUseCase:    userUseCase,
@@ -50,15 +53,15 @@ func (ac *AuthController) RegisterRoutes(router *gin.RouterGroup) {
 // @Produce  json
 // @Param   auth  body      dtos.AuthRequest  true  "Login credentials"
 // @Success 200 {string} string "Authentication successful"
-// @Failure 400 {object} dtos.ErrorResponse "Invalid request format"
-// @Failure 401 {object} dtos.ErrorResponse "Invalid credentials"
-// @Failure 500 {object} dtos.ErrorResponse "Internal server error"
+// @Failure 400 {object} response.ErrorResponse "Invalid request format"
+// @Failure 401 {object} response.ErrorResponse "Invalid credentials"
+// @Failure 500 {object} response.ErrorResponse "Internal server error"
 // @Router /auth [post]
 func (ac *AuthController) Login(c *gin.Context) {
-	var request dtos.AuthRequest
+	var request request.AuthRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		errorRes := dtos.ErrorResponse{
+		errorRes := response.ErrorResponse{
 			Error: "Invalid request format: " + err.Error(),
 		}
 		c.JSON(400, errorRes)
@@ -67,7 +70,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 
 	// Validate required fields
 	if (request.Email == "" && request.Nickname == "") || request.Passwd == "" {
-		errorRes := dtos.ErrorResponse{
+		errorRes := response.ErrorResponse{
 			Error: "Email/nickname and password are required",
 		}
 		c.JSON(400, errorRes)
@@ -77,7 +80,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 	// Authenticate user
 	email, err := ac.userUseCase.Login(request)
 	if err != nil {
-		errorRes := dtos.ErrorResponse{
+		errorRes := response.ErrorResponse{
 			Error: "Authentication failed: " + err.Error(),
 		}
 		c.JSON(401, errorRes)
@@ -86,7 +89,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 
 	token, err := ac.authMiddleware.GenerateToken(*email)
 	if err != nil {
-		var errorRes = dtos.ErrorResponse{
+		var errorRes = response.ErrorResponse{
 			Error: err.Error(),
 		}
 		c.JSON(500, errorRes)

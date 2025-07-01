@@ -4,14 +4,13 @@ import (
 	"errors"
 	"testing"
 
-	"Financial/Domains/ports"
-	"Financial/Models/db"
-	"Financial/Models/dtos"
-	usecases "Financial/UseCases"
-	"Financial/infrastructure"
-	mocks "Financial/test"
+	"Financial/Core/Models/db"
+	request "Financial/Core/Models/dtos/Request"
+	usecases "Financial/Core/UseCases"
+	contracts "Financial/Core/ports"
+	mocks "Financial/Test"
 
-	"Financial/types"
+	"Financial/Core/types"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -21,16 +20,16 @@ type errorProneMockRepository struct {
 	mocks.MockRepository[db.Wallet, int]
 }
 
-func (m *errorProneMockRepository) Query(query string, args ports.QueryOptions) (interface{}, error) {
+func (m *errorProneMockRepository) Query(query string, args contracts.QueryOptions) (interface{}, error) {
 	// Return an invalid type that will cause the type assertion to fail
 	return []struct{}{}, nil
 }
 
 func TestWalletUseCase_CreateWallet(t *testing.T) {
-	tests := []mocks.TestSetup[dtos.CreateWalletRequest, db.Wallet, int]{
+	tests := []mocks.TestSetup[request.CreateWalletRequest, db.Wallet, int]{
 		{
 			Name: "successful wallet creation",
-			Req: dtos.CreateWalletRequest{
+			Req: request.CreateWalletRequest{
 				Name:       "Savings",
 				WalletType: "savings",
 				Balance:    1000.0,
@@ -56,7 +55,7 @@ func TestWalletUseCase_CreateWallet(t *testing.T) {
 		},
 		{
 			Name: "empty wallet name",
-			Req: dtos.CreateWalletRequest{
+			Req: request.CreateWalletRequest{
 				Name:       "",
 				WalletType: "savings",
 				Balance:    1000.0,
@@ -67,7 +66,7 @@ func TestWalletUseCase_CreateWallet(t *testing.T) {
 		},
 		{
 			Name: "whitespace wallet name",
-			Req: dtos.CreateWalletRequest{
+			Req: request.CreateWalletRequest{
 				Name:       "  ",
 				WalletType: "savings",
 				Balance:    1000.0,
@@ -78,7 +77,7 @@ func TestWalletUseCase_CreateWallet(t *testing.T) {
 		},
 		{
 			Name: "negative balance",
-			Req: dtos.CreateWalletRequest{
+			Req: request.CreateWalletRequest{
 				Name:       "Savings",
 				WalletType: types.Debit,
 				Balance:    -100.0,
@@ -89,7 +88,7 @@ func TestWalletUseCase_CreateWallet(t *testing.T) {
 		},
 		{
 			Name: "invalid user ID",
-			Req: dtos.CreateWalletRequest{
+			Req: request.CreateWalletRequest{
 				Name:       "Savings",
 				WalletType: "savings",
 				Balance:    1000.0,
@@ -100,7 +99,7 @@ func TestWalletUseCase_CreateWallet(t *testing.T) {
 		},
 		{
 			Name: "duplicate wallet name for user",
-			Req: dtos.CreateWalletRequest{
+			Req: request.CreateWalletRequest{
 				Name:       "Savings",
 				WalletType: "savings",
 				Balance:    1000.0,
@@ -120,7 +119,7 @@ func TestWalletUseCase_CreateWallet(t *testing.T) {
 		},
 		{
 			Name: "error checking wallet existence",
-			Req: dtos.CreateWalletRequest{
+			Req: request.CreateWalletRequest{
 				Name:       "Savings",
 				WalletType: types.Debit,
 				Balance:    1000.0,
@@ -170,10 +169,10 @@ func TestWalletUseCase_CreateWallet(t *testing.T) {
 //	- error checking wallet names during update
 //	- no changes made during update
 func TestWalletUseCase_UpdateWallet(t *testing.T) {
-	tests := []mocks.TestSetup[dtos.UpdateWalletRequest, db.Wallet, int]{
+	tests := []mocks.TestSetup[request.UpdateWalletRequest, db.Wallet, int]{
 		{
 			Name: "successful wallet update",
-			Req: dtos.UpdateWalletRequest{
+			Req: request.UpdateWalletRequest{
 				WalletID:   1,
 				Name:       "Updated Savings",
 				WalletType: types.WalletTypePtr(types.Debit),
@@ -205,19 +204,19 @@ func TestWalletUseCase_UpdateWallet(t *testing.T) {
 		},
 		{
 			Name: "wallet not found",
-			Req: dtos.UpdateWalletRequest{
+			Req: request.UpdateWalletRequest{
 				WalletID: 999,
 				Name:     "Updated",
 			},
 			SetupMock: func(mock *mocks.MockRepository[db.Wallet, int]) {
-				mock.SetResponse("FindByField", nil, infrastructure.ErrNotFound)
+				mock.SetResponse("FindByField", nil, types.ErrNotFound)
 			},
 			ExpectErr:   true,
 			ExpectedErr: errors.New("wallet not found"),
 		},
 		{
 			Name: "duplicate wallet name",
-			Req: dtos.UpdateWalletRequest{
+			Req: request.UpdateWalletRequest{
 				WalletID: 1,
 				Name:     "Existing Wallet",
 			},
@@ -242,7 +241,7 @@ func TestWalletUseCase_UpdateWallet(t *testing.T) {
 		},
 		{
 			Name: "negative balance",
-			Req: dtos.UpdateWalletRequest{
+			Req: request.UpdateWalletRequest{
 				WalletID: 1,
 				Balance:  float64Ptr(-100.0),
 			},
@@ -260,7 +259,7 @@ func TestWalletUseCase_UpdateWallet(t *testing.T) {
 		},
 		{
 			Name: "error fetching wallet",
-			Req: dtos.UpdateWalletRequest{
+			Req: request.UpdateWalletRequest{
 				WalletID: 1,
 			},
 			ExpectErr:   true,
@@ -271,7 +270,7 @@ func TestWalletUseCase_UpdateWallet(t *testing.T) {
 		},
 		{
 			Name: "Error when wallet id is zero",
-			Req: dtos.UpdateWalletRequest{
+			Req: request.UpdateWalletRequest{
 				WalletID: 0,
 			},
 			ExpectErr:   true,
@@ -280,7 +279,7 @@ func TestWalletUseCase_UpdateWallet(t *testing.T) {
 		},
 		{
 			Name: "error checking wallet names during update",
-			Req: dtos.UpdateWalletRequest{
+			Req: request.UpdateWalletRequest{
 				WalletID: 1,
 				Name:     "New Name", // Un nombre diferente al existente para que entre en la validación
 			},
@@ -301,7 +300,7 @@ func TestWalletUseCase_UpdateWallet(t *testing.T) {
 		},
 		{
 			Name: "no changes made during update",
-			Req: dtos.UpdateWalletRequest{
+			Req: request.UpdateWalletRequest{
 				WalletID: 1,
 				Name:     "Old Name", // Same name as existing
 			},
@@ -377,7 +376,7 @@ func TestWalletUseCase_DeleteWallet(t *testing.T) {
 			name:     "wallet not found",
 			walletID: 999,
 			setupMock: func(mock *mocks.MockRepository[db.Wallet, int]) {
-				mock.SetResponse("GetByID", nil, infrastructure.ErrNotFound)
+				mock.SetResponse("GetByID", nil, types.ErrNotFound)
 			},
 			expectErr:   true,
 			expectedErr: errors.New("wallet not found"),
@@ -386,7 +385,7 @@ func TestWalletUseCase_DeleteWallet(t *testing.T) {
 			name:     "wallet not found",
 			walletID: 999,
 			setupMock: func(mock *mocks.MockRepository[db.Wallet, int]) {
-				mock.SetResponse("GetByID", nil, infrastructure.ErrNotFound)
+				mock.SetResponse("GetByID", nil, types.ErrNotFound)
 			},
 			expectErr:   true,
 			expectedErr: errors.New("wallet not found"),
@@ -458,7 +457,7 @@ func TestWalletUseCase_GetUserWallet(t *testing.T) {
 		userID       int
 		email        string
 		expectError  bool
-		expectWallet *ports.UserWallet
+		expectWallet *contracts.UserWallet
 	}{
 		{
 			name:   "success - user with wallets",
@@ -489,7 +488,7 @@ func TestWalletUseCase_GetUserWallet(t *testing.T) {
 				mockRepo.SetResponse("Query", mockWallets, nil)
 			},
 			expectError: false,
-			expectWallet: &ports.UserWallet{
+			expectWallet: &contracts.UserWallet{
 				Email: "test@example.com",
 				Wallets: []struct {
 					Name    string           `json:"name"`
@@ -510,7 +509,7 @@ func TestWalletUseCase_GetUserWallet(t *testing.T) {
 				mockRepo.SetResponse("Query", []db.Wallet{}, nil)
 			},
 			expectError: false,
-			expectWallet: &ports.UserWallet{
+			expectWallet: &contracts.UserWallet{
 				Email: "test@example.com",
 				Wallets: []struct {
 					Name    string           `json:"name"`

@@ -1,29 +1,53 @@
 package infrastructure
 
 import (
-	"Financial/Domains/ports"
-	"Financial/Models/db"
+	"Financial/Core/Models/db"
+	contracts "Financial/Core/ports"
+	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/supabase-community/postgrest-go"
 	"github.com/supabase-community/supabase-go"
 )
 
-const walletTable = "wallets"
+const table_string = "users"
 
-type SupaBaseWalletRepository struct {
+type SupaBaseUserRepository struct {
 	client *supabase.Client
 }
 
-func NewSupaBaseWalletRepository(client *supabase.Client) ports.Repository[db.Wallet, int] {
-	return &SupaBaseWalletRepository{client: client}
+func NewSupaBaseUserRepository(client *supabase.Client) contracts.Repository[db.User, int] {
+	return &SupaBaseUserRepository{client: client}
 }
 
-func (repo *SupaBaseWalletRepository) Create(model *db.Wallet) (*db.Wallet, error) {
-	var result db.Wallet
-	_, err := repo.client.From(walletTable).
-		Insert(model, false, "", "representation", "").
+// CreateUser is a helper struct that matches the database schema
+type CreateUser struct {
+	Nickname  string    `json:"nick_name"`
+	FirstName string    `json:"first_name"`
+	Lastname  string    `json:"last_name"`
+	Email     string    `json:"email"`
+	Status    string    `json:"status"`
+	CreatedAt time.Time `json:"created_at"`
+	Password  string    `json:"password"`
+}
+
+func (repo *SupaBaseUserRepository) Create(model *db.User) (*db.User, error) {
+	// Create a new user without the ID field
+	newUser := CreateUser{
+		Nickname:  model.Nickname,
+		FirstName: model.FirstName,
+		Lastname:  model.Lastname,
+		Email:     model.Email,
+		Status:    string(model.Status),
+		CreatedAt: model.CreatedAt,
+		Password:  model.Password,
+	}
+
+	var result db.User
+	_, err := repo.client.From(table_string).
+		Insert(newUser, false, "", "representation", "").
 		Single().
 		ExecuteTo(&result)
 
@@ -33,14 +57,17 @@ func (repo *SupaBaseWalletRepository) Create(model *db.Wallet) (*db.Wallet, erro
 	return &result, nil
 }
 
-func (repo *SupaBaseWalletRepository) Delete(id int) error {
+func (repo *SupaBaseUserRepository) Delete(id int) error {
 	_, _, err := repo.client.From(table_string).Delete("", "").
 		Single().Eq("id", strconv.Itoa(id)).Execute()
 	return err
 }
 
-func (repo *SupaBaseWalletRepository) FindByField(field string, value any) (*db.Wallet, error) {
-	var results []db.Wallet
+// ErrNotFound is returned when a record is not found
+var ErrNotFound = errors.New("record not found")
+
+func (repo *SupaBaseUserRepository) FindByField(field string, value any) (*db.User, error) {
+	var results []db.User
 
 	var filterValue string
 	switch v := value.(type) {
@@ -57,7 +84,7 @@ func (repo *SupaBaseWalletRepository) FindByField(field string, value any) (*db.
 	}
 
 	// Execute the query and get the results into a slice
-	_, err := repo.client.From(walletTable).
+	_, err := repo.client.From(table_string).
 		Select("*", "exact", false).
 		Filter(field, "eq", filterValue).
 		ExecuteTo(&results)
@@ -75,8 +102,8 @@ func (repo *SupaBaseWalletRepository) FindByField(field string, value any) (*db.
 	return &results[0], nil
 }
 
-func (repo *SupaBaseWalletRepository) GetAll() ([]db.Wallet, error) {
-	var todos []db.Wallet
+func (repo *SupaBaseUserRepository) GetAll() ([]db.User, error) {
+	var todos []db.User
 	_, err := repo.client.From(table_string).Select("*", "exact", false).
 		ExecuteTo(&todos)
 	if err != nil {
@@ -85,8 +112,8 @@ func (repo *SupaBaseWalletRepository) GetAll() ([]db.Wallet, error) {
 	return todos, nil
 }
 
-func (repo *SupaBaseWalletRepository) GetByID(id int) (*db.Wallet, error) {
-	var todo db.Wallet
+func (repo *SupaBaseUserRepository) GetByID(id int) (*db.User, error) {
+	var todo db.User
 	_, err := repo.client.From(table_string).Select("*", "exact", false).Eq("id", strconv.Itoa(id)).
 		Single().ExecuteTo(&todo)
 	if err != nil {
@@ -95,8 +122,8 @@ func (repo *SupaBaseWalletRepository) GetByID(id int) (*db.Wallet, error) {
 	return &todo, nil
 }
 
-func (r *SupaBaseWalletRepository) Update(todo *db.Wallet) (*db.Wallet, error) {
-	var result []db.Wallet
+func (r *SupaBaseUserRepository) Update(todo *db.User) (*db.User, error) {
+	var result []db.User
 	_, err := r.client.From(table_string).Update(todo, "", "").Eq("id", strconv.Itoa(todo.ID)).
 		ExecuteTo(&result)
 	if err != nil {
@@ -105,26 +132,12 @@ func (r *SupaBaseWalletRepository) Update(todo *db.Wallet) (*db.Wallet, error) {
 	return &result[0], nil
 }
 
-func (r *SupaBaseWalletRepository) GetUserWallet(id int, email string) (*ports.UserWallet, error) {
-	var result ports.UserWallet
-
-	_, err := r.client.From(walletTable).
-		Select("id, name, type, balance, users.id, users.nickname, users.email", "1", false).
-		Eq("users.email", email).
-		ExecuteTo(&result)
-
-	if err != nil {
-		return nil, fmt.Errorf("error fetching wallet with user: %w", err)
-	}
-	return &result, nil
-}
-
 // Query executes a custom query and returns the result as interface{}.
 // This method provides a flexible way to execute custom queries that don't fit the standard CRUD operations.
-func (r *SupaBaseWalletRepository) Query(fields string, args ports.QueryOptions) (interface{}, error) {
-	var wallet []db.Wallet
+func (r *SupaBaseUserRepository) Query(fields string, args contracts.QueryOptions) (interface{}, error) {
+	var user []db.User
 
-	query := r.client.From(walletTable)
+	query := r.client.From(table_string)
 	queryUnfilter := query.Select(fields, "", false)
 
 	for _, filter := range args.Filters {
@@ -167,11 +180,11 @@ func (r *SupaBaseWalletRepository) Query(fields string, args ports.QueryOptions)
 		})
 	}
 
-	_, err := queryUnfilter.ExecuteTo(&wallet)
+	_, err := queryUnfilter.ExecuteTo(&user)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return wallet, nil
+	return user, nil
 }

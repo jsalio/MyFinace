@@ -1,6 +1,6 @@
 package dtos
 
-import "Financial/types"
+import "Financial/Core/types"
 
 type CreateWalletRequest struct {
 	Name       string           `json:"name"`
