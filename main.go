@@ -22,7 +22,7 @@ import (
 	"os"
 
 	UserCases "Financial/Core/UseCases"
-	SupaBaseUserRepository "Financial/infrastructure"
+	SupaBaseUserRepository "Financial/persistence/infrastructure"
 
 	// "Financial/intefaces"
 
