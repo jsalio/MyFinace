@@ -17,17 +17,15 @@ package main
 import (
 	"Financial/Core/ports"
 	"Financial/intefaces"
+	"Financial/persistence"
 	"fmt"
 	"log"
 	"os"
 
 	UserCases "Financial/Core/UseCases"
-	SupaBaseUserRepository "Financial/persistence/infrastructure"
-
-	// "Financial/intefaces"
 
 	"github.com/joho/godotenv"
-	"github.com/supabase-community/supabase-go"
+	// "github.com/supabase-community/supabase-go"
 )
 
 var (
@@ -60,18 +58,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Inicializar cliente de Supabase
-	client, err := supabase.NewClient(supabaseURL, supabaseKey, nil)
+	dbBoostrap, err := persistence.Init()
+
 	if err != nil {
-		fmt.Printf("Error al inicializar cliente de Supabase: %v\n", err)
+		fmt.Printf("Error al configurar la aplicación: %v\n", err)
 		os.Exit(1)
 	}
 
-	accountRepository := SupaBaseUserRepository.NewSupaBaseUserRepository(client)
-	accountUseCase := UserCases.NewAccountUseCase(accountRepository)
-
-	walletRepository := SupaBaseUserRepository.NewSupaBaseWalletRepository(client)
-	walletUseCase := UserCases.NewWalletUseCase(walletRepository)
+	accountUseCase := UserCases.NewAccountUseCase(dbBoostrap.AccountRepository)
+	walletUseCase := UserCases.NewWalletUseCase(dbBoostrap.WalletRepository)
 
 	// Crear e iniciar el servidor web
 	server := intefaces.NewServer(accountUseCase, walletUseCase)
