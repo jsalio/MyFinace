@@ -2,7 +2,8 @@ package usecases
 
 import (
 	"Financial/Core/Models/db"
-	"Financial/Core/Models/dtos/Request"
+	dtos "Financial/Core/Models/dtos/Request"
+	response "Financial/Core/Models/dtos/Response"
 	"Financial/Core/ports"
 	"Financial/Core/types"
 
@@ -23,36 +24,45 @@ func NewAccountUseCase(repo ports.Repository[db.User, int]) ports.UserUseCase {
 	}
 }
 
-func (uc *AccountUseCase) CreateAccount(nick string, email string, password string) (*db.User, error) {
+func (uc *AccountUseCase) CreateAccount(nick string, email string, password string) (*response.SuccessResponse[*response.CreateAccountResponse], *response.ErrorResponse) {
 
-	// Validaciones de entrada
+	failValidations := []string{}
+
 	if strings.TrimSpace(nick) == "" {
-		return nil, errors.New("nickname cannot be empty")
+		failValidations = append(failValidations, "nickname cannot be empty")
 	}
 	if strings.TrimSpace(email) == "" {
-		return nil, errors.New("email cannot be empty")
+		failValidations = append(failValidations, "email cannot be empty")
 	}
 	if strings.TrimSpace(password) == "" {
-		return nil, errors.New("password cannot be empty")
+		failValidations = append(failValidations, "password cannot be empty")
 	}
-
 	if !isValidEmail(email) {
-		return nil, errors.New("invalid email format")
+		failValidations = append(failValidations, "invalid email format")
 	}
 
-	// Check if email already exists
 	_, err := uc.repository.FindByField("email", email)
 	if err == nil {
-		return nil, errors.New("email already exists")
+		failValidations = append(failValidations, "email already exists")
 	} else if err != types.ErrNotFound {
-		return nil, fmt.Errorf("error checking email existence: %w", err)
+		failValidations = append(failValidations, fmt.Errorf("error checking email existence: %w", err).Error())
 	}
 
 	_, err_nick := uc.repository.FindByField("nick_name", nick)
 	if err_nick == nil {
-		return nil, errors.New("nickname already exists")
+		failValidations = append(failValidations, "nickname already exists")
 	} else if err != types.ErrNotFound {
-		return nil, fmt.Errorf("error checking nick existence: %w", err)
+		failValidations = append(failValidations, fmt.Errorf("error checking nick existence: %w", err).Error())
+	}
+
+	if len(failValidations) > 0 {
+		var message = ""
+		for _, errVal := range failValidations {
+			message += fmt.Sprintf("%w \n", errVal)
+		}
+		return nil, &response.ErrorResponse{
+			Error: message,
+		}
 	}
 
 	account := &db.User{
@@ -64,7 +74,22 @@ func (uc *AccountUseCase) CreateAccount(nick string, email string, password stri
 		CreatedAt: time.Now(),
 		Password:  password,
 	}
-	return uc.repository.Create(account)
+	result, error := uc.repository.Create(account)
+
+	if error != nil {
+		return nil, &response.ErrorResponse{
+			Error: fmt.Errorf("error checking nick existence: %w", err).Error(),
+		}
+	}
+
+	return &response.SuccessResponse[*response.CreateAccountResponse]{
+		Message: "",
+		Data: &response.CreateAccountResponse{
+			ID:    result.ID,
+			Nick:  result.Nickname,
+			Email: result.Email,
+		},
+	}, nil
 }
 
 func isValidEmail(email string) bool {
@@ -74,29 +99,53 @@ func isValidEmail(email string) bool {
 	return re.MatchString(email)
 }
 
-func (uc *AccountUseCase) DestroyAccount(email string) error {
+func (uc *AccountUseCase) DestroyAccount(email string) *response.ErrorResponse {
+	failValidations := []string{}
+
 	if strings.TrimSpace(email) == "" {
-		return errors.New("email cannot be empty")
+		failValidations = append(failValidations, "email cannot be empty")
 	}
 
 	user, err := uc.repository.FindByField("email", email)
 	if err != nil {
-		return errors.New("account not found")
+		failValidations = append(failValidations, "email cannot be empty")
+		//return errors.New("account not found")
 	}
 
-	return uc.repository.Delete(user.ID)
+	if len(failValidations) > 0 {
+		var message = ""
+		for _, errVal := range failValidations {
+			message += fmt.Sprintf("%w \n", errVal)
+		}
+		return &response.ErrorResponse{
+			Error: message,
+		}
+	}
+
+	err = uc.repository.Delete(user.ID)
+
+	if err != nil {
+		return &response.ErrorResponse{
+			Error: err.Error(),
+		}
+	}
+
+	return nil
 }
 
-func (uc *AccountUseCase) UpdateAccount(req db.UpdateAccountRequest) (*db.User, error) {
-	fmt.Printf("%v", req)
+func (uc *AccountUseCase) UpdateAccount(req db.UpdateAccountRequest) (*response.SuccessResponse[*response.UpdateAccountResponse], *response.ErrorResponse) {
+
+	failValidations := []string{}
+
 	if strings.TrimSpace(req.Email) == "" {
-		return nil, errors.New("email cannot be empty")
+		//return nil, errors.New("email cannot be empty")
+		failValidations = append(failValidations, "email cannot be empty")
 	}
 
 	user, err := uc.repository.FindByField("email", req.Email)
 	if err != nil {
-		fmt.Printf("%v", err)
-		return nil, errors.New("account not found")
+		//return nil, errors.New("account not found")
+		failValidations = append(failValidations, "account not found")
 	}
 
 	// Actualizar solo los campos proporcionados
@@ -119,23 +168,45 @@ func (uc *AccountUseCase) UpdateAccount(req db.UpdateAccountRequest) (*db.User, 
 	}
 
 	if user.ID != req.ID {
-		return nil, errors.New("user id and Mail not match")
+		//return nil, errors.New("user id and Mail not match")
 	}
 
 	// Validar si el nuevo email ya existe (si se proporciona)
 	if req.Email != "" && req.Email != user.Email {
 		if _, err := uc.repository.FindByField("Email", req.Email); err == nil {
-			return nil, errors.New("new email already exists")
+			failValidations = append(failValidations, "new email already exists")
+			//return nil, errors.New("new email already exists")
 		}
 		user.Email = req.Email
 		updated = true
 	}
 
 	if !updated {
-		return user, nil // No hay cambios, devolver el usuario sin actualizar
+		return &response.SuccessResponse[*response.UpdateAccountResponse]{
+			Message: "NoChanges",
+			Data: &response.UpdateAccountResponse{
+				ID:    user.ID,
+				Email: user.Email,
+			},
+		}, nil // No hay cambios, devolver el usuario sin actualizar
 	}
 
-	return uc.repository.Update(user)
+	data, error := uc.repository.Update(user)
+
+	if error != nil {
+		return nil, &response.ErrorResponse{
+			Error: err.Error(),
+		}
+	}
+
+	return &response.SuccessResponse[*response.UpdateAccountResponse]{
+		Message: "Updated",
+		Data: &response.UpdateAccountResponse{
+			ID:    data.ID,
+			Email: data.Email,
+		},
+	}, nil
+
 }
 
 func (uc *AccountUseCase) Login(auth dtos.AuthRequest) (*string, error) {

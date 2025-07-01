@@ -83,23 +83,11 @@ func (ac *AccountController) CreateUserAccount(c *gin.Context) {
 		c.JSON(400, errorRes)
 		return
 	}
-
 	account, err := ac.userUseCase.CreateAccount(request.Nick, request.Email, request.Password)
 	if err != nil {
-		var errorRes = response.ErrorResponse{
-			Error: err.Error(),
-		}
-		c.JSON(500, errorRes)
-		return
+		c.JSON(500, err)
 	}
-
-	var response = response.CreateAccountResponse{
-		ID:    account.ID,
-		Nick:  account.Nickname,
-		Email: account.Nickname,
-	}
-
-	c.JSON(200, response)
+	c.JSON(200, account)
 }
 
 // UpdateUserAccount actualiza la información de un usuario existente
@@ -134,17 +122,11 @@ func (ac *AccountController) UpdateUserAccount(c *gin.Context) {
 	})
 
 	if err != nil {
-		var errorRes = response.ErrorResponse{
-			Error: err.Error(),
-		}
-		c.JSON(500, errorRes)
+
+		c.JSON(500, err)
 		return
 	}
-	var response = response.UpdateAccountResponse{
-		ID:    account.ID,
-		Email: account.Email,
-	}
-	c.JSON(200, response)
+	c.JSON(200, account)
 }
 
 // DeleteUserAccount elimina una cuenta de usuario
@@ -171,10 +153,7 @@ func (ac *AccountController) DeleteUserAccount(c *gin.Context) {
 
 	err := ac.userUseCase.DestroyAccount(request.Email)
 	if err != nil {
-		var errorRes = response.ErrorResponse{
-			Error: err.Error(),
-		}
-		c.JSON(500, errorRes)
+		c.JSON(500, err)
 		return
 	}
 
