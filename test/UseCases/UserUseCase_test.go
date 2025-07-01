@@ -5,12 +5,10 @@ import (
 	"testing"
 
 	"Financial/Core/Models/db"
-	"Financial/Core/types"
-	"Financial/infrastructure"
-
-	// "Financial/ports"
 	usecases "Financial/Core/UseCases"
-	mocks "Financial/test"
+	mocks "Financial/Test"
+
+	"Financial/Core/types"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -33,7 +31,7 @@ func TestAccountUseCase_CreateAccount(t *testing.T) {
 			password: "securepassword123!",
 			setupMock: func(mock *mocks.MockRepository[db.User, int]) {
 				// Mock FindByField to return ErrNotFound for both email and nickname checks
-				mock.SetResponse("FindByField", nil, infrastructure.ErrNotFound)
+				mock.SetResponse("FindByField", nil, types.ErrNotFound)
 			},
 			verify: func(t *testing.T, user *db.User, err error) {
 				assert.NoError(t, err)
