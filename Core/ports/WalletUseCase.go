@@ -2,7 +2,8 @@ package ports
 
 import (
 	"Financial/Core/Models/db"
-	"Financial/Core/Models/dtos/Request"
+	dtos "Financial/Core/Models/dtos/Request"
+	response "Financial/Core/Models/dtos/Response"
 )
 
 // WalletUseCase defines the interface for wallet-related business logic operations.
@@ -18,7 +19,7 @@ type WalletUseCase interface {
 	// Returns:
 	//   - *models.Wallet: The newly created wallet
 	//   - error:         Error if creation fails (e.g., invalid data, duplicate name)
-	CreateWallet(request dtos.CreateWalletRequest) (*db.Wallet, error)
+	CreateWallet(request dtos.CreateWalletRequest) (*db.Wallet, *response.ErrorResponse)
 
 	// UpdateWallet updates an existing wallet with new information
 	//
@@ -31,7 +32,7 @@ type WalletUseCase interface {
 	// Returns:
 	//   - *models.Wallet: The updated wallet
 	//   - error:         Error if update fails (e.g., invalid data, wallet not found)
-	UpdateWallet(request dtos.UpdateWalletRequest) (*db.Wallet, error)
+	UpdateWallet(request dtos.UpdateWalletRequest) (*db.Wallet, *response.ErrorResponse)
 
 	// DeleteWallet removes a wallet by its ID
 	//
@@ -42,5 +43,14 @@ type WalletUseCase interface {
 	//   - error: Error if deletion fails (e.g., wallet not found)
 	DeleteWallet(walletID int) error
 
-	GetUserWallet(id int, email string) (*UserWallet, error)
+	// GetUserWallet retrieves wallet information for a specific user
+	//
+	// Parameters:
+	//   - id:    The ID of the wallet to retrieve
+	//   - email: Email of the user requesting the wallet (for authorization)
+	//
+	// Returns:
+	//   - *response.UserWalletResponse: The wallet information including balance and transactions
+	//   - error: Error if retrieval fails (e.g., wallet not found, unauthorized access)
+	GetUserWallet(id int, email string) (*response.UserWalletResponse, *response.ErrorResponse)
 }

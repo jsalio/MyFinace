@@ -79,7 +79,7 @@ func (wc *WalletController) getUserWallets(c *gin.Context) {
 	}
 	wallet, err := wc.wallet.GetUserWallet(0, email)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, err)
 		return
 	}
 	c.JSON(http.StatusCreated, wallet)
@@ -115,7 +115,7 @@ func (wc *WalletController) createWallet(c *gin.Context) {
 
 	wallet, err := wc.wallet.CreateWallet(request)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, err)
 		return
 	}
 
@@ -143,7 +143,7 @@ func (wc *WalletController) updateWallet(c *gin.Context) {
 	}
 	updatedWallet, err := wc.wallet.UpdateWallet(request)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, err)
 		return
 	}
 

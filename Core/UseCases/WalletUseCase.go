@@ -2,9 +2,11 @@ package usecases
 
 import (
 	"Financial/Core/Models/db"
-	"Financial/Core/Models/dtos/Request"
+	dtos "Financial/Core/Models/dtos/Request"
+	response "Financial/Core/Models/dtos/Response"
 	"Financial/Core/ports"
 	"Financial/Core/types"
+	"Financial/Core/validators"
 	"errors"
 	"fmt"
 	"strings"
@@ -23,57 +25,87 @@ func NewWalletUseCase(repo ports.Repository[db.Wallet, int]) ports.WalletUseCase
 }
 
 // CreateWallet implements WalletUseCase.CreateWallet
-func (uc *WalletUseCase) CreateWallet(request dtos.CreateWalletRequest) (*db.Wallet, error) {
+func (uc *WalletUseCase) CreateWallet(request dtos.CreateWalletRequest) (*db.Wallet, *response.ErrorResponse) {
 	// Input validations
-	if strings.TrimSpace(request.Name) == "" {
-		return nil, errors.New("wallet name cannot be empty")
-	}
+	// if strings.TrimSpace(request.Name) == "" {
+	// 	return nil, errors.New("wallet name cannot be empty")
+	// }
 
-	if request.Balance < 0 {
-		return nil, errors.New("initial balance cannot be negative")
-	}
+	// if request.Balance < 0 {
+	// 	return nil, errors.New("initial balance cannot be negative")
+	// }
 
-	if request.UserID <= 0 {
-		return nil, errors.New("invalid user ID")
+	// if request.UserID <= 0 {
+	// 	return nil, errors.New("invalid user ID")
+	// }
+
+	success, error := validators.ValidateWallet(request)
+	if !success {
+		return nil, &response.ErrorResponse{
+			Error: strings.Join(*error, " \n"),
+		}
 	}
 
 	// Check if wallet name already exists for this user
 	existingWallets, err := uc.repository.GetAll()
 	if err != nil {
-		return nil, fmt.Errorf("error checking wallet existence: %w", err)
+		return nil, &response.ErrorResponse{
+			Error: fmt.Errorf("error checking wallet existence: %w", err).Error(),
+		}
 	}
 
 	for _, w := range existingWallets {
 		if w.Name == request.Name && w.UserID == request.UserID {
-			return nil, errors.New("a wallet with this name already exists for this user")
+			return nil, &response.ErrorResponse{
+				Error: errors.New("a wallet with this name already exists for this user").Error(),
+			}
 		}
 	}
 
-	wallet := &db.Wallet{
+	wallet := db.Wallet{
 		Name:    request.Name,
 		Type:    request.WalletType,
 		Balance: request.Balance,
 		UserID:  request.UserID,
 	}
+	result, err := uc.repository.Create(&wallet)
 
-	return uc.repository.Create(wallet)
+	if err != nil {
+		return nil, &response.ErrorResponse{
+			Error: errors.New("a wallet with this name already exists for this user").Error(),
+		}
+	}
+
+	return result, nil
 }
 
 // UpdateWallet implements WalletUseCase.UpdateWallet
-func (uc *WalletUseCase) UpdateWallet(request dtos.UpdateWalletRequest) (*db.Wallet, error) {
+func (uc *WalletUseCase) UpdateWallet(request dtos.UpdateWalletRequest) (*db.Wallet, *response.ErrorResponse) {
 	// Input validation
-	if request.WalletID <= 0 {
-		return nil, errors.New("invalid wallet ID")
+	// if request.WalletID <= 0 {
+	// 	return nil, errors.New("invalid wallet ID")
+	// }
+
+	errorsVal, existingWallet := validators.UpdateWalletValidator(request, uc.repository)
+
+	if errorsVal != nil {
+		return nil, &response.ErrorResponse{
+			Error: strings.Join(*errorsVal, " \n"),
+		}
 	}
 
 	// Get existing wallet
-	existingWallet, err := uc.repository.FindByField("id", request.WalletID)
-	if err != nil {
-		if err == types.ErrNotFound {
-			return nil, errors.New("wallet not found")
-		}
-		return nil, fmt.Errorf("error fetching wallet: %w", err)
-	}
+	//existingWallet, err := uc.repository.FindByField("id", request.WalletID)
+	// if err != nil {
+	// 	if err == types.ErrNotFound {
+	// 		return nil, &response.ErrorResponse{
+	// 			Error: errors.New("wallet not found").Error(),
+	// 		}
+	// 	}
+	// 	return nil, &response.ErrorResponse{
+	// 		Error: fmt.Errorf("error fetching wallet: %w", err).Error(),
+	// 	}
+	// }
 
 	// Update fields if provided
 	updated := false
@@ -82,12 +114,16 @@ func (uc *WalletUseCase) UpdateWallet(request dtos.UpdateWalletRequest) (*db.Wal
 		// Check if new name is already taken by another wallet of the same user
 		existingWallets, err := uc.repository.GetAll()
 		if err != nil {
-			return nil, fmt.Errorf("error checking wallet names: %w", err)
+			return nil, &response.ErrorResponse{
+				Error: fmt.Errorf("error checking wallet names: %w", err).Error(),
+			}
 		}
 
 		for _, w := range existingWallets {
 			if w.Name == request.Name && w.UserID == existingWallet.UserID && w.ID != request.WalletID {
-				return nil, errors.New("a wallet with this name already exists for this user")
+				return nil, &response.ErrorResponse{
+					Error: errors.New("a wallet with this name already exists for this user").Error(),
+				}
 			}
 		}
 
@@ -102,7 +138,9 @@ func (uc *WalletUseCase) UpdateWallet(request dtos.UpdateWalletRequest) (*db.Wal
 
 	if request.Balance != nil && *request.Balance != existingWallet.Balance {
 		if *request.Balance < 0 {
-			return nil, errors.New("balance cannot be negative")
+			return nil, &response.ErrorResponse{
+				Error: errors.New("balance cannot be negative").Error(),
+			}
 		}
 		existingWallet.Balance = *request.Balance
 		updated = true
@@ -112,7 +150,15 @@ func (uc *WalletUseCase) UpdateWallet(request dtos.UpdateWalletRequest) (*db.Wal
 		return existingWallet, nil // No changes made
 	}
 
-	return uc.repository.Update(existingWallet)
+	result, errorUpdate := uc.repository.Update(existingWallet)
+
+	if errorUpdate != nil {
+		return nil, &response.ErrorResponse{
+			Error: errorUpdate.Error(),
+		}
+	}
+	return result, nil
+
 }
 
 // DeleteWallet implements WalletUseCase.DeleteWallet
@@ -136,7 +182,7 @@ func (uc *WalletUseCase) DeleteWallet(walletID int) error {
 	return uc.repository.Delete(walletID)
 }
 
-func (uc *WalletUseCase) GetUserWallet(id int, email string) (*ports.UserWallet, error) {
+func (uc *WalletUseCase) GetUserWallet(id int, email string) (*response.UserWalletResponse, *response.ErrorResponse) {
 	data, err := uc.repository.Query("id,name,type,balance,user:users!inner(email)", ports.QueryOptions{
 		Filters: []ports.Filter{
 			ports.Filter{
@@ -147,18 +193,22 @@ func (uc *WalletUseCase) GetUserWallet(id int, email string) (*ports.UserWallet,
 		},
 	})
 	if err != nil {
-		return nil, err
+		return nil, &response.ErrorResponse{
+			Error: err.Error(),
+		}
 	}
 
-	var result ports.UserWallet
+	var result response.UserWalletResponse
 
 	// Type assert the result to *ports.UserWallet
 	wallet, ok := data.([]db.Wallet)
 	if !ok {
-		return nil, errors.New("unexpected type returned from repository")
+		return nil, &response.ErrorResponse{
+			Error: errors.New("unexpected type returned from repository").Error(),
+		}
 	}
 
-	result = ports.UserWallet{
+	result = response.UserWalletResponse{
 		Email: email,
 	}
 

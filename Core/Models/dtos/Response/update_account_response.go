@@ -1,4 +1,4 @@
-package dtos
+package response
 
 // UpdateAccountResponse represents the response structure returned after successfully
 // updating an existing account in the system. This DTO (Data Transfer Object) contains

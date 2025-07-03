@@ -1,4 +1,4 @@
-package dtos
+package response
 
 // SuccessResponse represents a standardized success response structure for API responses.
 // It is a generic type that can wrap any data type, providing a consistent response format

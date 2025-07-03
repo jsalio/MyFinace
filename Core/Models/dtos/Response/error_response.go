@@ -1,4 +1,4 @@
-package dtos
+package response
 
 // ErrorResponse representa una respuesta de error estándar
 // swagger:model

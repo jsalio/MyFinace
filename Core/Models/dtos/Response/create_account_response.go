@@ -1,4 +1,4 @@
-package dtos
+package response
 
 // CreateAccountResponse represents the response structure returned after successfully
 // creating a new account in the system. This DTO (Data Transfer Object) contains
