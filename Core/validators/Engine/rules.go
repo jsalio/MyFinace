@@ -9,16 +9,16 @@ import (
 type RuleType string
 
 const (
-	ShouldEqual            RuleType = "Equal"
-	ShouldNotEqual         RuleType = "NotEqual"
-	ShouldGreatThah        RuleType = "GreatThat"
-	ShouldGreatOrEqualThah RuleType = "GreatOrEqualThat"
-	ShouldLessThat         RuleType = "LessThat"
-	ShouldLessOrEqualThat  RuleType = "LessOrEqualThat"
-	ShouldEmpty            RuleType = "Empty"
-	ShouldNotEmpty         RuleType = "NotEmpty"
-	ShouldMatch            RuleType = "Match"
-	ShouldLength           RuleType = "Length"
+	ShouldEqual              RuleType = "Equal"
+	ShouldNotEqual           RuleType = "NotEqual"
+	ShouldGreatThah          RuleType = "GreatThat"
+	ShouldGreaterOrEqualThan RuleType = "ShouldGreaterOrEqualThan"
+	ShouldLessThat           RuleType = "LessThat"
+	ShouldLessOrEqualThat    RuleType = "LessOrEqualThat"
+	ShouldEmpty              RuleType = "Empty"
+	ShouldNotEmpty           RuleType = "NotEmpty"
+	ShouldMatch              RuleType = "Match"
+	ShouldLength             RuleType = "Length"
 )
 
 type ValidationError struct {
@@ -70,7 +70,7 @@ func (r ValidationRule) Validate(value interface{}) *ValidationError {
 				Message: fmt.Sprintf("tipo inválido para %s", r.FieldName),
 			}
 		}
-	case ShouldGreatOrEqualThah:
+	case ShouldGreaterOrEqualThan:
 		if v.Kind() == reflect.Int && expected.Kind() == reflect.Int {
 			if v.Int() < expected.Int() {
 				return &ValidationError{
