@@ -33,6 +33,11 @@ type ValidationRule struct {
 	Expected  interface{} // Valor esperado para la regla (puede ser string, int, regex, etc.)
 }
 
+type PatialValidationRule struct {
+	Rule     RuleType
+	Expected interface{}
+}
+
 func (r ValidationRule) Validate(value interface{}) *ValidationError {
 	v := reflect.ValueOf(value)
 	expected := reflect.ValueOf(r.Expected)

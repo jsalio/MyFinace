@@ -15,7 +15,13 @@ func ValidateWallet(data dtos.CreateWalletRequest) (bool, *[]string) {
 	var errors []string
 
 	validator := engine.NewValidator()
-	validator.AddRule("Name", engine.ShouldNotEmpty, nil)
+
+	nameRule := []engine.PatialValidationRule{
+		{Rule: engine.ShouldNotEmpty, Expected: nil},
+		{Rule: engine.ShouldLength, Expected: 5},
+	}
+
+	validator.AddRules("Name", nameRule)
 	validator.AddRule("Balance", engine.ShouldGreaterOrEqualThan, 0) // Fixed typo
 	validator.AddRule("UserID", engine.ShouldGreaterOrEqualThan, 0)  // Fixed typo
 

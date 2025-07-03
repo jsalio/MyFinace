@@ -33,6 +33,12 @@ func (v *ValidatorEngine) AddRule(fieldName string, rule RuleType, expected inte
 	})
 }
 
+func (v *ValidatorEngine) AddRules(fieldName string, rules []PatialValidationRule) {
+	for _, rule := range rules {
+		v.AddRule(fieldName, rule.Rule, rule.Expected)
+	}
+}
+
 // Validate valida un struct y devuelve los resultados
 func (v *ValidatorEngine) Validate(data interface{}) ValidationResult {
 	result := ValidationResult{}
