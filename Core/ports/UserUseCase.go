@@ -28,7 +28,7 @@ type UserUseCase interface {
 	//
 	// Returns:
 	//   - *response.ErrorResponse: Error response if account deletion fails (e.g., account not found, permission denied)
-	DestroyAccount(email string) *response.ErrorResponse
+	DestroyAccount(email string) *[]response.ErrorResponse
 
 	// UpdateAccount modifies an existing user's account information.
 	//
@@ -38,7 +38,7 @@ type UserUseCase interface {
 	// Returns:
 	//   - *response.SuccessResponse[*response.UpdateAccountResponse]: Wrapped success response containing the updated account details
 	//   - *response.ErrorResponse: Error response if update fails (e.g., invalid data, user not found)
-	UpdateAccount(user db.UpdateAccountRequest) (*response.SuccessResponse[*response.UpdateAccountResponse], *response.ErrorResponse)
+	UpdateAccount(user db.UpdateAccountRequest) (*response.SuccessResponse[*response.UpdateAccountResponse], *[]response.ErrorResponse)
 
 	// Login authenticates a user with the provided credentials.
 	//

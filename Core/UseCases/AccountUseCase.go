@@ -49,10 +49,12 @@ func (uc *AccountUseCase) validateNickUniqueness(nick string, v *validators.Vali
 	}
 }
 
-func (uc *AccountUseCase) validateAndGetUser(email string, v *validators.Validator) *db.User {
+func (uc *AccountUseCase) validateAndGetUser(email string, v *[]response.ErrorResponse) *db.User {
 	user, err := uc.repository.FindByField("email", email)
 	if err != nil {
-		v.AddError(validators.ErrAccountNotFound)
+		*v = append(*v, response.ErrorResponse{
+			Error: "User not found",
+		})
 		return nil
 	}
 	return user
@@ -106,33 +108,53 @@ func (uc *AccountUseCase) CreateAccount(nick string, email string, password stri
 	}, nil
 }
 
-func (uc *AccountUseCase) DestroyAccount(email string) *response.ErrorResponse {
-	v := validators.NewValidator()
-	v.Required(email, "email")
+func (uc *AccountUseCase) DestroyAccount(email string) *[]response.ErrorResponse {
+	validationsError := []response.ErrorResponse{}
+	validator := validators.DestroidAccountValidator(email, uc.repository)
 
-	user := uc.validateAndGetUser(email, v)
-	if !v.IsValid() {
-		return &response.ErrorResponse{Error: v.Error()}
+	if len(validator.Errors) > 0 {
+		for _, err := range validator.Errors {
+			validationsError = append(validationsError, response.ErrorResponse{
+				Error: fmt.Sprintf("%s.", err.Message),
+			})
+		}
+		return &validationsError
+	}
+
+	user := uc.validateAndGetUser(email, &validationsError)
+	if len(validationsError) > 0 {
+		return &validationsError
 	}
 
 	err := uc.repository.Delete(user.ID)
 
 	if err != nil {
-		return &response.ErrorResponse{
+		validationsError = append(validationsError, response.ErrorResponse{
 			Error: err.Error(),
-		}
+		})
+		return &validationsError
 	}
 
 	return nil
 }
 
-func (uc *AccountUseCase) UpdateAccount(req db.UpdateAccountRequest) (*response.SuccessResponse[*response.UpdateAccountResponse], *response.ErrorResponse) {
-	v := validators.NewValidator()
-	v.Required(req.Email, "email")
+func (uc *AccountUseCase) UpdateAccount(req db.UpdateAccountRequest) (*response.SuccessResponse[*response.UpdateAccountResponse], *[]response.ErrorResponse) {
 
-	user := uc.validateAndGetUser(req.Email, v)
-	if !v.IsValid() {
-		return nil, &response.ErrorResponse{Error: v.Error()}
+	validationsError := []response.ErrorResponse{}
+	validator := validators.UpdateAccountValidator(req, uc.repository)
+
+	if len(validator.Errors) > 0 {
+		for _, err := range validator.Errors {
+			validationsError = append(validationsError, response.ErrorResponse{
+				Error: fmt.Sprintf("%s.", err.Message),
+			})
+		}
+		return nil, &validationsError
+	}
+
+	user := uc.validateAndGetUser(req.Email, &validationsError)
+	if len(validationsError) > 0 {
+		return nil, &validationsError
 	}
 
 	// Actualizar solo los campos proporcionados
@@ -158,16 +180,6 @@ func (uc *AccountUseCase) UpdateAccount(req db.UpdateAccountRequest) (*response.
 		//return nil, errors.New("user id and Mail not match")
 	}
 
-	// Validar si el nuevo email ya existe (si se proporciona)
-	// if req.Email != "" && req.Email != user.Email {
-	// 	if _, err := uc.repository.FindByField("Email", req.Email); err == nil {
-	// 		failValidations = append(failValidations, "new email already exists")
-	// 		//return nil, errors.New("new email already exists")
-	// 	}
-	// 	user.Email = req.Email
-	// 	updated = true
-	// }
-
 	if !updated {
 		return &response.SuccessResponse[*response.UpdateAccountResponse]{
 			Message: "NoChanges",
@@ -181,9 +193,10 @@ func (uc *AccountUseCase) UpdateAccount(req db.UpdateAccountRequest) (*response.
 	data, error := uc.repository.Update(user)
 
 	if error != nil {
-		return nil, &response.ErrorResponse{
+		validationsError = append(validationsError, response.ErrorResponse{
 			Error: error.Error(),
-		}
+		})
+		return nil, &validationsError
 	}
 
 	return &response.SuccessResponse[*response.UpdateAccountResponse]{
