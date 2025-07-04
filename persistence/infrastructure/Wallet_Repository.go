@@ -1,7 +1,9 @@
 package infrastructure
 
 import (
+	// reponse "Financial/Core/Model/response"
 	"Financial/Core/Models/db"
+	response "Financial/Core/Models/dtos/Response"
 	"Financial/Core/ports"
 	"fmt"
 	"strconv"
@@ -105,8 +107,8 @@ func (r *SupaBaseWalletRepository) Update(todo *db.Wallet) (*db.Wallet, error) {
 	return &result[0], nil
 }
 
-func (r *SupaBaseWalletRepository) GetUserWallet(id int, email string) (*ports.UserWallet, error) {
-	var result ports.UserWallet
+func (r *SupaBaseWalletRepository) GetUserWallet(id int, email string) (*response.UserWalletResponse, error) {
+	var result response.UserWalletResponse
 
 	_, err := r.client.From(walletTable).
 		Select("id, name, type, balance, users.id, users.nickname, users.email", "1", false).

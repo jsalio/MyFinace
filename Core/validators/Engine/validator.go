@@ -25,17 +25,18 @@ func NewValidator() *ValidatorEngine {
 }
 
 // AddRule agrega una regla de validación para un campo
-func (v *ValidatorEngine) AddRule(fieldName string, rule RuleType, expected interface{}) {
+func (v *ValidatorEngine) AddRule(fieldName string, rule RuleType, expected interface{}, mesage string) {
 	v.rules = append(v.rules, ValidationRule{
 		FieldName: fieldName,
 		Rule:      rule,
 		Expected:  expected,
+		Message:   &mesage,
 	})
 }
 
 func (v *ValidatorEngine) AddRules(fieldName string, rules []PatialValidationRule) {
 	for _, rule := range rules {
-		v.AddRule(fieldName, rule.Rule, rule.Expected)
+		v.AddRule(fieldName, rule.Rule, rule.Expected, rule.Message)
 	}
 }
 

@@ -58,24 +58,42 @@ func (uc *AccountUseCase) validateAndGetUser(email string, v *validators.Validat
 	return user
 }
 
-func (uc *AccountUseCase) CreateAccount(nick string, email string, password string) (*response.SuccessResponse[*response.CreateAccountResponse], *response.ErrorResponse) {
-	v := validators.NewValidator()
+func (uc *AccountUseCase) CreateAccount(nick string, email string, password string) (*response.SuccessResponse[*response.CreateAccountResponse], *[]response.ErrorResponse) {
 
-	// Validaciones básicas
-	v.Required(nick, "nickname")
-	v.Required(email, "email")
-	v.Required(password, "password")
+	validationsError := []response.ErrorResponse{}
+	// v := validators.NewValidator()
 
-	if !validators.IsValidEmail(email) {
-		v.AddError(validators.ErrEmailInvalid)
-	}
+	// // Validaciones básicas
+	// v.Required(nick, "nickname")
+	// v.Required(email, "email")
+	// v.Required(password, "password")
 
-	// Validaciones de unicidad
-	uc.validateEmailUniqueness(email, v)
-	uc.validateNickUniqueness(nick, v)
+	// if !validators.IsValidEmail(email) {
+	// 	v.AddError(validators.ErrEmailInvalid)
+	// }
 
-	if !v.IsValid() {
-		return nil, &response.ErrorResponse{Error: v.Error()}
+	// // Validaciones de unicidad
+	// uc.validateEmailUniqueness(email, v)
+	// uc.validateNickUniqueness(nick, v)
+
+	// if !v.IsValid() {
+	// 	return nil, &response.ErrorResponse{Error: v.Error()}
+	// }
+
+	validator := validators.CreateAccountValidator(dtos.CreateAccountRequest{
+		Nick:     nick,
+		Email:    email,
+		Password: password,
+	}, uc.repository)
+
+	if validator != nil {
+
+		for _, err := range validator.Errors {
+			validationsError = append(validationsError, response.ErrorResponse{
+				Error: fmt.Sprintf("%s.\n", err.Message),
+			})
+		}
+		return nil, &validationsError
 	}
 
 	account := &db.User{
@@ -90,9 +108,10 @@ func (uc *AccountUseCase) CreateAccount(nick string, email string, password stri
 	result, error := uc.repository.Create(account)
 
 	if error != nil {
-		return nil, &response.ErrorResponse{
-			Error: fmt.Errorf("error checking nick existence: %w", error).Error(),
-		}
+		validationsError = append(validationsError, response.ErrorResponse{
+			Error: fmt.Sprintf("error checking nick existence: %w", error),
+		})
+		return nil, &validationsError
 	}
 
 	return &response.SuccessResponse[*response.CreateAccountResponse]{

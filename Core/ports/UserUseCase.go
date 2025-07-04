@@ -19,7 +19,7 @@ type UserUseCase interface {
 	// Returns:
 	//   - *response.SuccessResponse[*response.CreateAccountResponse]: Wrapped success response containing the created account details
 	//   - *response.ErrorResponse: Error response if account creation fails (e.g., duplicate email, invalid input)
-	CreateAccount(nick string, email string, password string) (*response.SuccessResponse[*response.CreateAccountResponse], *response.ErrorResponse)
+	CreateAccount(nick string, email string, password string) (*response.SuccessResponse[*response.CreateAccountResponse], *[]response.ErrorResponse)
 
 	// DestroyAccount permanently deletes a user account identified by email.
 	//

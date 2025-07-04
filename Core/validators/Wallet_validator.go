@@ -17,13 +17,13 @@ func ValidateWallet(data dtos.CreateWalletRequest) (bool, *[]string) {
 	validator := engine.NewValidator()
 
 	nameRule := []engine.PatialValidationRule{
-		{Rule: engine.ShouldNotEmpty, Expected: nil},
-		{Rule: engine.ShouldLength, Expected: 5},
+		{Rule: engine.ShouldNotEmpty, Expected: nil, Message: ""},
+		{Rule: engine.ShouldLength, Expected: 5, Message: ""},
 	}
 
 	validator.AddRules("Name", nameRule)
-	validator.AddRule("Balance", engine.ShouldGreaterOrEqualThan, 0) // Fixed typo
-	validator.AddRule("UserID", engine.ShouldGreaterOrEqualThan, 0)  // Fixed typo
+	validator.AddRule("Balance", engine.ShouldGreaterOrEqualThan, 0, "") // Fixed typo
+	validator.AddRule("UserID", engine.ShouldGreaterOrEqualThan, 0, "")  // Fixed typo
 
 	result := validator.Validate(data)
 
@@ -46,8 +46,8 @@ func UpdateWalletValidator(data dtos.UpdateWalletRequest, repository ports.Repos
 	var errors []string
 
 	validator := engine.NewValidator()
-	validator.AddRule("Name", engine.ShouldNotEmpty, nil)
-	validator.AddRule("Balance", engine.ShouldGreaterOrEqualThan, 0) // Fixed typo
+	validator.AddRule("Name", engine.ShouldNotEmpty, nil, "")
+	validator.AddRule("Balance", engine.ShouldGreaterOrEqualThan, 0, "") // Fixed typo
 
 	result := validator.Validate(data)
 
