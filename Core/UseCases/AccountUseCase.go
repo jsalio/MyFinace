@@ -61,36 +61,16 @@ func (uc *AccountUseCase) validateAndGetUser(email string, v *validators.Validat
 func (uc *AccountUseCase) CreateAccount(nick string, email string, password string) (*response.SuccessResponse[*response.CreateAccountResponse], *[]response.ErrorResponse) {
 
 	validationsError := []response.ErrorResponse{}
-	// v := validators.NewValidator()
-
-	// // Validaciones básicas
-	// v.Required(nick, "nickname")
-	// v.Required(email, "email")
-	// v.Required(password, "password")
-
-	// if !validators.IsValidEmail(email) {
-	// 	v.AddError(validators.ErrEmailInvalid)
-	// }
-
-	// // Validaciones de unicidad
-	// uc.validateEmailUniqueness(email, v)
-	// uc.validateNickUniqueness(nick, v)
-
-	// if !v.IsValid() {
-	// 	return nil, &response.ErrorResponse{Error: v.Error()}
-	// }
-
 	validator := validators.CreateAccountValidator(dtos.CreateAccountRequest{
 		Nick:     nick,
 		Email:    email,
 		Password: password,
 	}, uc.repository)
 
-	if validator != nil {
-
+	if len(validator.Errors) > 0 {
 		for _, err := range validator.Errors {
 			validationsError = append(validationsError, response.ErrorResponse{
-				Error: fmt.Sprintf("%s.\n", err.Message),
+				Error: fmt.Sprintf("%s.", err.Message),
 			})
 		}
 		return nil, &validationsError
@@ -114,13 +94,15 @@ func (uc *AccountUseCase) CreateAccount(nick string, email string, password stri
 		return nil, &validationsError
 	}
 
+	data := &response.CreateAccountResponse{
+		ID:    result.ID,
+		Nick:  result.Nickname,
+		Email: result.Email,
+	}
+
 	return &response.SuccessResponse[*response.CreateAccountResponse]{
 		Message: "",
-		Data: &response.CreateAccountResponse{
-			ID:    result.ID,
-			Nick:  result.Nickname,
-			Email: result.Email,
-		},
+		Data:    data,
 	}, nil
 }
 

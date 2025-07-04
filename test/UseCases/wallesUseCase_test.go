@@ -6,6 +6,7 @@ import (
 
 	"Financial/Core/Models/db"
 	request "Financial/Core/Models/dtos/Request"
+	reponse "Financial/Core/Models/dtos/Response"
 	usecases "Financial/Core/UseCases"
 	contracts "Financial/Core/ports"
 	mocks "Financial/Test"
@@ -144,15 +145,15 @@ func TestWalletUseCase_CreateWallet(t *testing.T) {
 			wallet, err := useCase.CreateWallet(tt.Req)
 
 			if tt.ExpectErr {
-				assert.Error(t, err)
+				assert.Error(t, errors.New(err.Error))
 				if tt.ExpectedErr != nil {
-					assert.Contains(t, err.Error(), tt.ExpectedErr.Error())
+					assert.Contains(t, err.Error, tt.ExpectedErr.Error())
 				}
 				return
 			}
 
 			if tt.Verify != nil {
-				tt.Verify(t, wallet, err)
+				tt.Verify(t, wallet, errors.New(err.Error))
 			}
 		})
 	}
@@ -330,15 +331,15 @@ func TestWalletUseCase_UpdateWallet(t *testing.T) {
 			wallet, err := useCase.UpdateWallet(tt.Req)
 
 			if tt.ExpectErr {
-				assert.Error(t, err)
+				assert.Error(t, errors.New(err.Error))
 				if tt.ExpectedErr != nil {
-					assert.Contains(t, err.Error(), tt.ExpectedErr.Error())
+					assert.Contains(t, err.Error, tt.ExpectedErr.Error())
 				}
 				return
 			}
 
 			if tt.Verify != nil {
-				tt.Verify(t, wallet, err)
+				tt.Verify(t, wallet, errors.New(err.Error))
 			}
 		})
 	}
@@ -445,9 +446,9 @@ func TestWalletUseCase_GetUserWallet(t *testing.T) {
 		result, err := uc.GetUserWallet(1, "test@example.com")
 
 		// Verificar los resultados
-		assert.Error(t, err, "Expected an error due to type assertion failure")
+		assert.Error(t, errors.New(err.Error), "Expected an error due to type assertion failure")
 		assert.Nil(t, result, "Result should be nil on error")
-		assert.Contains(t, err.Error(), "unexpected type returned from repository", "Error message should indicate type assertion failure")
+		assert.Contains(t, err.Error, "unexpected type returned from repository", "Error message should indicate type assertion failure")
 	})
 
 	// Setup other test cases
@@ -457,7 +458,7 @@ func TestWalletUseCase_GetUserWallet(t *testing.T) {
 		userID       int
 		email        string
 		expectError  bool
-		expectWallet *contracts.UserWallet
+		expectWallet *reponse.UserWalletResponse
 	}{
 		{
 			name:   "success - user with wallets",
@@ -488,7 +489,7 @@ func TestWalletUseCase_GetUserWallet(t *testing.T) {
 				mockRepo.SetResponse("Query", mockWallets, nil)
 			},
 			expectError: false,
-			expectWallet: &contracts.UserWallet{
+			expectWallet: &reponse.UserWalletResponse{
 				Email: "test@example.com",
 				Wallets: []struct {
 					Name    string           `json:"name"`
@@ -509,7 +510,7 @@ func TestWalletUseCase_GetUserWallet(t *testing.T) {
 				mockRepo.SetResponse("Query", []db.Wallet{}, nil)
 			},
 			expectError: false,
-			expectWallet: &contracts.UserWallet{
+			expectWallet: &reponse.UserWalletResponse{
 				Email: "test@example.com",
 				Wallets: []struct {
 					Name    string           `json:"name"`
@@ -548,9 +549,9 @@ func TestWalletUseCase_GetUserWallet(t *testing.T) {
 
 			// Assert the results
 			if tt.expectError {
-				assert.Error(t, err, "Expected an error")
+				assert.Error(t, errors.New(err.Error), "Expected an error")
 			} else {
-				assert.NoError(t, err, "Unexpected error")
+				assert.NoError(t, errors.New(err.Error), "Unexpected error")
 				assert.Equal(t, tt.expectWallet.Email, result.Email, "Email should match")
 				assert.Len(t, result.Wallets, len(tt.expectWallet.Wallets), "Number of wallets should match")
 

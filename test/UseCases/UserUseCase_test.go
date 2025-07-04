@@ -1,14 +1,13 @@
 package UseCases_test
 
 import (
-	"errors"
 	"testing"
 
 	"Financial/Core/Models/db"
+	response "Financial/Core/Models/dtos/Response"
 	usecases "Financial/Core/UseCases"
-	mocks "Financial/Test"
-
 	"Financial/Core/types"
+	mocks "Financial/Test"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -20,82 +19,152 @@ func TestAccountUseCase_CreateAccount(t *testing.T) {
 		email       string
 		password    string
 		expectErr   bool
-		expectedErr error
+		expectedErr interface{}
 		setupMock   func(*mocks.MockRepository[db.User, int])
-		verify      func(t *testing.T, user *db.User, err error)
+		verify      func(t *testing.T, user *response.CreateAccountResponse, err error)
 	}{
 		{
 			name:     "successful account creation",
-			nickname: "alice",
+			nickname: "alice_serat",
 			email:    "alice@example.com",
 			password: "securepassword123!",
 			setupMock: func(mock *mocks.MockRepository[db.User, int]) {
-				// Mock FindByField to return ErrNotFound for both email and nickname checks
 				mock.SetResponse("FindByField", nil, types.ErrNotFound)
+				mock.SetFindByFieldNotExists(true)
+				mock.SetResponse("FindByField", nil, nil)
+				mock.SetResponse("FindByField", nil, nil)
 			},
-			verify: func(t *testing.T, user *db.User, err error) {
+			verify: func(t *testing.T, user *response.CreateAccountResponse, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "alice", user.Nickname)
+				assert.Equal(t, "alice_serat", user.Nick)
 				assert.Equal(t, "alice@example.com", user.Email)
-				assert.NotEmpty(t, user.Password)
-				assert.Equal(t, types.Inactive, user.Status)
 			},
 		},
 		{
-			name:        "empty nickname",
-			nickname:    "",
-			email:       "alice@example.com",
-			password:    "securepassword123!",
-			expectErr:   true,
-			expectedErr: errors.New("nickname cannot be empty"),
+			name:      "empty nickname",
+			nickname:  "",
+			email:     "alice@example.com",
+			password:  "securepassword123!",
+			expectErr: true,
+			expectedErr: response.ErrorResponse{
+				Error: "Nickname Is Empty.",
+			},
 		},
 		{
-			name:        "whitespace nickname",
-			nickname:    "   ",
-			email:       "alice@example.com",
-			password:    "securepassword123!",
-			expectErr:   true,
-			expectedErr: errors.New("nickname cannot be empty"),
+			name:      "whitespace nickname",
+			nickname:  "   ",
+			email:     "alice@example.com",
+			password:  "securepassword123!",
+			expectErr: true,
+			expectedErr: response.ErrorResponse{
+				Error: "Nickname contains space.",
+			},
 		},
 		{
-			name:        "invalid email format",
-			nickname:    "alice",
-			email:       "invalid-email",
-			password:    "securepassword123!",
-			expectErr:   true,
-			expectedErr: errors.New("invalid email format"),
+			name:      "Nickname length required",
+			nickname:  "   ",
+			email:     "alice@example.com",
+			password:  "securepassword123!",
+			expectErr: true,
+			expectedErr: response.ErrorResponse{
+				Error: "Nickname not have length.",
+			},
 		},
 		{
-			name:        "empty email",
-			nickname:    "alice",
-			email:       "",
-			password:    "securepassword123!",
-			expectErr:   true,
-			expectedErr: errors.New("email cannot be empty"),
+			name:      "invalid email format",
+			nickname:  "alice",
+			email:     "invalid-email",
+			password:  "securepassword123!",
+			expectErr: true,
+			expectedErr: response.ErrorResponse{
+				Error: "Email not match.",
+			},
 		},
 		{
-			name:        "whitespace email",
-			nickname:    "alice",
-			email:       "   ",
-			password:    "securepassword123!",
-			expectErr:   true,
-			expectedErr: errors.New("email cannot be empty"),
+			name:      "Valid email should pass",
+			nickname:  "alice_morat",
+			email:     "my_personal@mail.com",
+			password:  "securepassword123!",
+			expectErr: true,
+			setupMock: func(mock *mocks.MockRepository[db.User, int]) {
+
+				mock.SetFindByFieldNotExists(true)
+				mock.SetResponse("FindByField", nil, nil)
+				mock.SetResponse("FindByField", nil, nil)
+			},
 		},
 		{
-			name:        "empty password",
-			nickname:    "alice",
-			email:       "alice@example.com",
-			password:    "",
-			expectErr:   true,
-			expectedErr: errors.New("password cannot be empty"),
+			name:      "empty email",
+			nickname:  "alice",
+			email:     "",
+			password:  "securepassword123!",
+			expectErr: true,
+			expectedErr: response.ErrorResponse{
+				Error: "Email Is Empty.",
+			},
 		},
 		{
-			name:        "whitespace password",
-			nickname:    "alice",
-			email:       "alice@example.com",
-			password:    "   ",
-			expectErr:   true,
-			expectedErr: errors.New("password cannot be empty"),
+			name:      "whitespace email",
+			nickname:  "alice",
+			email:     "   ",
+			password:  "securepassword123!",
+			expectErr: true,
+			expectedErr: response.ErrorResponse{
+				Error: "Email not match.",
+			},
+		},
+		{
+			name:      "Math with lenght required",
+			nickname:  "alice",
+			email:     "1@mail.com",
+			password:  "securepassword123!",
+			expectErr: true,
+			expectedErr: response.ErrorResponse{
+				Error: "Email not have length.",
+			},
+		},
+		{
+			name:      "Match with lenght required",
+			nickname:  "alice",
+			email:     "my_personal@mail.com",
+			password:  "securepassword123!",
+			expectErr: true,
+			expectedErr: response.ErrorResponse{
+				Error: "Email already exists.",
+			},
+			setupMock: func(mock *mocks.MockRepository[db.User, int]) {
+				mock.SetResponse("FindByField", &db.User{Email: "my_personal@mail.com"}, nil)
+			},
+		},
+		{
+			name:      "empty password",
+			nickname:  "alice",
+			email:     "alice@example.com",
+			password:  "",
+			expectErr: true,
+			expectedErr: response.ErrorResponse{
+				Error: "Password Is Empty.",
+			},
+		},
+		{
+			name:      "whitespace password",
+			nickname:  "alice",
+			email:     "alice@example.com",
+			password:  "1   3",
+			expectErr: true,
+			expectedErr: response.ErrorResponse{
+				Error: "Password contains space.",
+			},
+		},
+		{
+			name:      "Password length required",
+			nickname:  "alice",
+			email:     "alice@example.com",
+			password:  "1   3",
+			expectErr: true,
+			expectedErr: response.ErrorResponse{
+				Error: "Password not have length.",
+			},
 		},
 		{
 			name:     "duplicate email",
@@ -105,8 +174,10 @@ func TestAccountUseCase_CreateAccount(t *testing.T) {
 			setupMock: func(mock *mocks.MockRepository[db.User, int]) {
 				mock.SetResponse("FindByField", &db.User{Email: "duplicate@example.com"}, nil)
 			},
-			expectErr:   true,
-			expectedErr: errors.New("email already exists"),
+			expectErr: true,
+			expectedErr: response.ErrorResponse{
+				Error: "Email already exists.",
+			},
 		},
 	}
 
@@ -118,18 +189,28 @@ func TestAccountUseCase_CreateAccount(t *testing.T) {
 			}
 
 			useCase := usecases.NewAccountUseCase(repo)
-			user, err := useCase.CreateAccount(tt.nickname, tt.email, tt.password)
+			newUser, err := useCase.CreateAccount(tt.nickname, tt.email, tt.password)
 
 			if tt.expectErr {
-				assert.Error(t, err)
+				assert.IsType(t, &[]response.ErrorResponse{}, err)
 				if tt.expectedErr != nil {
-					assert.Contains(t, err.Error(), tt.expectedErr.Error())
+					assert.Contains(t, *err, tt.expectedErr)
 				}
 				return
+			} else {
+				if err != nil {
+					if len(*err) > 0 {
+						assert.Fail(t, "This test suppouse not have errors")
+					}
+				}
 			}
 
 			if tt.verify != nil {
-				tt.verify(t, user, err)
+				if newUser == nil {
+					t.Error("Expected newUser to not be nil")
+					return
+				}
+				tt.verify(t, newUser.Data, nil)
 			}
 		})
 	}

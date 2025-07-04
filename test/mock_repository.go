@@ -23,6 +23,8 @@ type MockRepository[T any, ID comparable] struct {
 	calls map[string][]interface{}
 	// responses stores predefined responses for each method
 	responses map[string]response
+
+	ForceFindByFieldNotExists bool
 }
 
 // response defines the expected response for a mocked method
@@ -222,6 +224,10 @@ func (m *MockRepository[T, ID]) Delete(id ID) error {
 func (m *MockRepository[T, ID]) FindByField(field string, value any) (*T, error) {
 	m.recordCall("FindByField", field, value)
 
+	if m.ForceFindByFieldNotExists {
+		return nil, nil
+	}
+
 	// Check for predefined response
 	m.mu.RLock()
 	resp, exists := m.responses["FindByField"]
@@ -232,6 +238,9 @@ func (m *MockRepository[T, ID]) FindByField(field string, value any) (*T, error)
 		}
 		if val, ok := resp.value.(*T); ok {
 			return val, nil
+		}
+		if resp.err == nil && exists {
+			return nil, nil
 		}
 		return nil, errors.New("invalid response type for FindByField")
 	}
@@ -250,6 +259,10 @@ func (m *MockRepository[T, ID]) FindByField(field string, value any) (*T, error)
 		}
 	}
 	return nil, errors.New("entity not found")
+}
+
+func (m *MockRepository[T, ID]) SetFindByFieldNotExists(notExists bool) {
+	m.ForceFindByFieldNotExists = notExists
 }
 
 // Query executes a custom query and returns the result as interface{}.

@@ -58,13 +58,13 @@ func IsValidEmail(email string) bool {
 
 func CreateAccountValidator(data request.CreateAccountRequest, repo contract.Repository[repository.User, int]) *engine.ValidationResult {
 
-	findEmail := func(value interface{}) (bool, string) {
+	detectDuplicatedMail := func(value interface{}) (bool, string) {
 		result, error := repo.FindByField("email", value)
 		if error != nil {
 			return false, "Error fectching data"
 		}
-		if result == nil {
-			return false, "Error Mail not found"
+		if result != nil {
+			return false, "Duplicated Mail"
 		}
 		return true, ""
 	}
@@ -83,17 +83,19 @@ func CreateAccountValidator(data request.CreateAccountRequest, repo contract.Rep
 	validator := engine.NewValidator()
 	emailrules := []engine.PatialValidationRule{
 		{Rule: engine.ShouldNotEmpty, Expected: nil, Message: "Email Is Empty"},
-		{Rule: engine.ShouldLength, Expected: 12, Message: "Email not have length"},
-		{Rule: engine.ShouldMatch, Expected: `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`, Message: "Email not math"},
-		{Rule: engine.Must, Expected: engine.CustomValidatorFunc(findEmail), Message: "Email not found"},
+		{Rule: engine.ShouldMinLength, Expected: 12, Message: "Email not have length"},
+		{Rule: engine.ShouldMatch, Expected: `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`, Message: "Email not match"},
+		{Rule: engine.Must, Expected: engine.CustomValidatorFunc(detectDuplicatedMail), Message: "Email already exists"},
 	}
 	passwordRule := []engine.PatialValidationRule{
 		{Rule: engine.ShouldNotEmpty, Expected: nil, Message: "Password Is Empty"},
-		{Rule: engine.ShouldGreaterOrEqualThan, Expected: 8, Message: "Password not have length"},
+		{Rule: engine.ShouldMatch, Expected: `^\S*$`, Message: "Password contains space"},
+		{Rule: engine.ShouldMinLength, Expected: 8, Message: "Password not have length"},
 	}
 	nickNameRules := []engine.PatialValidationRule{
 		{Rule: engine.ShouldNotEmpty, Expected: nil, Message: "Nickname Is Empty"},
-		{Rule: engine.ShouldGreaterOrEqualThan, Expected: 6, Message: "Nickname not have length"},
+		{Rule: engine.ShouldMinLength, Expected: 6, Message: "Nickname not have length"},
+		{Rule: engine.ShouldMatch, Expected: `^\S*$`, Message: "Nickname contains space"},
 		{Rule: engine.Must, Expected: engine.CustomValidatorFunc(checkExistNick), Message: "Nickname already exists"},
 	}
 

@@ -18,7 +18,9 @@ const (
 	ShouldEmpty              RuleType = "Empty"
 	ShouldNotEmpty           RuleType = "NotEmpty"
 	ShouldMatch              RuleType = "Match"
+	ShouldNotMatch           RuleType = "NoMatch"
 	ShouldLength             RuleType = "Length"
+	ShouldMinLength          RuleType = "MinLenth"
 	Must                     RuleType = "Must"
 )
 
@@ -174,6 +176,7 @@ func (r ValidationRule) Validate(value interface{}) *ValidationError {
 				Exception: fmt.Sprintf("tipo inválido para %s", r.FieldName),
 			}
 		}
+
 	case ShouldLength:
 		if v.Kind() == reflect.String && expected.Kind() == reflect.Int {
 			if len(v.String()) != int(expected.Int()) {
@@ -182,6 +185,24 @@ func (r ValidationRule) Validate(value interface{}) *ValidationError {
 					Message:   *r.Message,
 					Rule:      r.Rule,
 					Exception: fmt.Sprintf("el campo %s debe tener longitud %v", r.FieldName, r.Expected),
+				}
+			}
+		} else {
+			return &ValidationError{
+				Field:     r.FieldName,
+				Message:   *r.Message,
+				Rule:      r.Rule,
+				Exception: fmt.Sprintf("tipo inválido para %s", r.FieldName),
+			}
+		}
+	case ShouldMinLength:
+		if v.Kind() == reflect.String && expected.Kind() == reflect.Int {
+			if len(v.String()) < int(expected.Int()) {
+				return &ValidationError{
+					Field:     r.FieldName,
+					Message:   *r.Message,
+					Rule:      r.Rule,
+					Exception: fmt.Sprintf("el campo %s debe tener al menos %v caracteres", r.FieldName, r.Expected),
 				}
 			}
 		} else {
